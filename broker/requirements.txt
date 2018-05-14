@@ -1,0 +1,9 @@
+flask
+flask_restful
+selenium==3.10.0
+celery
+redis
+# winspeech
+redis
+xlrd
+firebase-admin
