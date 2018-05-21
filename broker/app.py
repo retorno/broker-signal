@@ -20,6 +20,7 @@ clear = None
 # operation:Buy
 # stop_loss:50
 # production:1
+#
 
 
 @app.route('/broker/position', methods=['GET'])
