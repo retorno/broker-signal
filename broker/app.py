@@ -40,12 +40,15 @@ def getRecipe():
     return recipe
 
 def getHeaders(request):
-    
+
+    #changePosition (0 = False, 1 = True)
+
     stock = {'active': request.headers['active'],
              'quantity': request.headers['quantity'],
              'operation': request.headers['operation'],
              'stop_loss': request.headers['stop_loss'],
-             'production': request.headers['production']}
+             'production': request.headers['production'],
+             'change_position': request.headers['change_position']}
     return stock
 
 
@@ -75,9 +78,9 @@ def cancelOrder():
 def changeStop():
     stock = getHeaders(request)
     # import ipdb; ipdb.set_trace()
-    sendQuantity = int(stock.get('quantity'))
+    changePosition = int(stock.get('change_position'))
     position = abs(int(clear.getPosition()))
-    if clear.limitPosition(stock=stock) and sendQuantity != position:
+    if clear.limitPosition(stock=stock) and changePosition == 1:
         clear.setOrderFast(stock=stock)
     clear.cancelOrders(stock=stock)
     clear.setStop(stock=stock, beforePosition=position)

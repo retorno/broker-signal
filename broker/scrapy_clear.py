@@ -87,6 +87,7 @@ class ScrapyClear(WebDriver):
         self.openBroker()
 
     def limitPosition(self, stock={}):
+        # Verifica se existe margem para operação
         # import ipdb; ipdb.set_trace()
         sendQuantity = int(stock.get('quantity'))
         maxPosition = self.getMaxPosition(stock= stock)
