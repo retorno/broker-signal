@@ -17,9 +17,8 @@ var/
 *.egg
 *.pyc
 env.bat
-../env.bat
-../.idea/
-../venv/
+.idea/
+venv/
 
 docker-base.env
 

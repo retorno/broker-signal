@@ -11,27 +11,27 @@ app = Flask(__name__)
 api = Api(app)
 clear = None
 
+# conda activate py36
 
 # to use set WINFUT = WINM18
-# test => post localhost:5005/broker/change-stop
+# test => post localhost:5000/broker/change-stop
 # active:WINFUT
 # quantity:1
 # operation:Buy
-# stop_loss:35
+# stop_loss:50
 # production:1
 
 
 @app.route('/broker/position', methods=['GET'])
 def getPosition():
     position = clear.getPosition()
-    return position
+    return str(position)
 
 
 @app.route('/broker/last-price', methods=['GET'])
 def getLastPrice():
-    stock = getHeaders(request)
     lastPrice = clear.getLastPrice()
-    return lastPrice
+    return str(lastPrice)
 
 
 def getHeaders(request):
