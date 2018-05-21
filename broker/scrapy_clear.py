@@ -119,6 +119,10 @@ class ScrapyClear(WebDriver):
             lastPrice.replace(',','.')
         return lastPrice
 
+    def getRecipe(self):
+        recipe = self.getClass('ng-binding').text[3:]
+        return recipe
+
     def setOrderFast(self, stock={}):
         # import ipdb; ipdb.set_trace()
         self.getClass('bt_fast_boleta').click()
@@ -204,6 +208,7 @@ class ScrapyClear(WebDriver):
             self.setOrder(stock= stock)
             stock['status'] = "order %s position %s" %(sendOperation, currentPosition)
         return str(stock)
+
 
     def setFormOrder(self, stock={}):
         edtQuantity = self.getId('msg_quantity')

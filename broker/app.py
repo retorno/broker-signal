@@ -33,8 +33,13 @@ def getLastPrice():
     lastPrice = clear.getLastPrice()
     return str(lastPrice)
 
+@app.route('/broker/recipe', methods=['GET'])
+def getRecipe():
+    recipe = clear.getRecipe()
+    return recipe
 
 def getHeaders(request):
+    
     stock = {'active': request.headers['active'],
              'quantity': request.headers['quantity'],
              'operation': request.headers['operation'],
