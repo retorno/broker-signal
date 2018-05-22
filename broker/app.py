@@ -47,7 +47,7 @@ def zeraAll():
 def getHeaders(request):
 
     #changePosition (0 = False, 1 = True)
-
+    print(request.headers)
     stock = {'active': request.headers['active'],
              'quantity': request.headers['quantity'],
              'operation': request.headers['operation'],
@@ -74,8 +74,9 @@ def setStop():
 @app.route('/broker/cancel-order', methods=['POST'])
 def cancelOrder():
     # import ipdb; ipdb.set_trace()
-    stock = getHeaders(request)
-    order = clear.cancelOrders(stock=stock)
+    # stock = getHeaders(request)
+    # order = clear.cancelOrders(stock=stock)
+    order = clear.cancelOrders()
     return order
 
 
