@@ -164,7 +164,7 @@ class ScrapyClear(WebDriver):
         if 'Aberto' in listOrder:
             return False
         else:
-            return True
+           return True
 
     def cancelOrders(self, stock={}):
         # import ipdb; ipdb.set_trace()
@@ -200,11 +200,9 @@ class ScrapyClear(WebDriver):
         lastPrice = float(self.getLastPrice())
         stopLoss = float(stock.get('stop_loss'))
         if sendOperation == OperationEnum.COMPRA.value:
-            stopLoss = lastPrice - stopLoss
             if sendQuantity != beforePosition:
                 currentPosition = beforePosition + sendQuantity
         elif sendOperation == OperationEnum.VENDA.value:
-            stopLoss = lastPrice + stopLoss
             if sendQuantity != beforePosition:
                 currentPosition = beforePosition - sendQuantity
         while count < self.tryGet and currentPosition != beforePosition:
@@ -245,7 +243,7 @@ class ScrapyClear(WebDriver):
             self.getClass('bt_comprar').click()
         else:
             stock['status'] = 'Test'
-        self.sayExecute(stock= stock)
+        #self.sayExecute(stock= stock)
 
     def assignOperation(self, stock={}, type_order=None):
         operation = {TypeOrderEnum.LIMITED.value: '0',
