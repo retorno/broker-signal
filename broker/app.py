@@ -39,6 +39,11 @@ def getRecipe():
     recipe = clear.getRecipe()
     return recipe
 
+@app.route('/broker/zerar-all', methods=['GET'])
+def zeraAll():
+    zerar = clear.zeraAll()
+    return zerar
+
 def getHeaders(request):
 
     #changePosition (0 = False, 1 = True)

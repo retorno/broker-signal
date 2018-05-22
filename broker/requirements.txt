@@ -3,7 +3,7 @@ flask_restful
 selenium==3.10.0
 celery
 redis
-winspeech
+#winspeech
 ipdb
 redis
 xlrd

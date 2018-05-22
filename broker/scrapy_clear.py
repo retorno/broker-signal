@@ -19,10 +19,11 @@ class TypeOrderEnum(Enum):
     LIMITED = 'Limited'
     AGRESSION = 'Aggression'
     CANCELAR = 'Cancelar'
+    ZERAR = 'Zerar'
 
 class ScrapyClear(WebDriver):
 
-    tryGet = 13
+    tryGet = 30
     def __init__(self, *args, **kwargs):
         config_chrome = {}
         # config_chrome['donwload_dir'] = settings.DOWNLOAD_DIR
@@ -120,9 +121,17 @@ class ScrapyClear(WebDriver):
             lastPrice.replace(',','.')
         return lastPrice
 
-    def getRecipe(self):
+    def getRecipe(self, stock={}):
         recipe = self.getClass('ng-binding').text[3:]
         return recipe
+
+    def zeraAll(self, stock={}):
+        tab_ordens = self.getClass('bt_orders_boleta')
+        tab_ordens.click()
+        self.driver.execute_script("document.getElementsByClassName('bt_action')[1].click()")
+        self.assignOperation(type_order= TypeOrderEnum.ZERAR.value)
+        self.driver.execute_script("document.getElementsByClassName('bt_comprar')[2].click()")
+        return str(stock)
 
     def setOrderFast(self, stock={}):
         # import ipdb; ipdb.set_trace()
@@ -241,6 +250,7 @@ class ScrapyClear(WebDriver):
     def assignOperation(self, stock={}, type_order=None):
         operation = {TypeOrderEnum.LIMITED.value: '0',
                      TypeOrderEnum.AGRESSION.value: '1',
+                     TypeOrderEnum.ZERAR.value: '4',
                      TypeOrderEnum.CANCELAR.value: '4'}
         keyOper = operation.get(type_order)
         sign = os.environ.get('BROKER_SIGNATURE')
