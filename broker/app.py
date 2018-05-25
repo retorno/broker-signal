@@ -10,7 +10,6 @@ import os, time, json
 app = Flask(__name__)
 api = Api(app)
 clear = None
-
 # conda activate py36
 
 # to use set WINFUT = WINM18
@@ -18,9 +17,11 @@ clear = None
 # active:WINFUT
 # quantity:1
 # operation:Buy
-# stop_loss:50
+# stop_loss:35
 # production:1
-#
+# change_position:1
+# calculate_stop:1
+# quantity_to_double:50
 
 
 @app.route('/broker/position', methods=['GET'])
@@ -34,18 +35,20 @@ def getLastPrice():
     lastPrice = clear.getLastPrice()
     return str(lastPrice)
 
+
 @app.route('/broker/recipe', methods=['GET'])
 def getRecipe():
     recipe = clear.getRecipe()
     return recipe
+
 
 @app.route('/broker/zerar-all', methods=['GET'])
 def zeraAll():
     zerar = clear.zeraAll()
     return zerar
 
-def getHeaders(request):
 
+def getHeaders(request):
     #changePosition (0 = False, 1 = True)
     print(request.headers)
     stock = {'active': request.headers['active'],
@@ -53,7 +56,9 @@ def getHeaders(request):
              'operation': request.headers['operation'],
              'stop_loss': request.headers['stop_loss'],
              'production': request.headers['production'],
-             'change_position': request.headers['change_position']}
+             'change_position': request.headers['change_position'],
+             'calculate_stop': request.headers['calculate_stop'],
+             'quantity_to_double': request.headers['quantity_to_double']}
     return stock
 
 
@@ -86,8 +91,11 @@ def changeStop():
     # import ipdb; ipdb.set_trace()
     changePosition = int(stock.get('change_position'))
     position = abs(int(clear.getPosition()))
-    if clear.limitPosition(stock=stock) and changePosition == 1:
+    stock['last_price'] = str(clear.getLastPrice())
+    if clear.limitPosition(stock=stock) and clear.canDouble(stock=stock, beforePosition=position) and changePosition == 1:
         clear.setOrderFast(stock=stock)
+        os.environ['LAST_ORDEM_PRICE'] = stock.get('last_price')
+        stock["quantity"] += position
     clear.cancelOrders(stock=stock)
     clear.setStop(stock=stock, beforePosition=position)
     return json.dumps(stock)
