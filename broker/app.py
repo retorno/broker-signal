@@ -76,13 +76,12 @@ def setStop():
     return order
 
 
-@app.route('/broker/cancel-order', methods=['GET'])
+@app.route('/broker/cancel-order', methods=['POST'])
 def cancelOrder():
     # import ipdb; ipdb.set_trace()
-    # stock = getHeaders(request)
-    # order = clear.cancelOrders(stock=stock)
-    # order = clear.cancelOrders()
-    order = clear.allOrderCancel()
+    stock = getHeaders(request)
+    order = clear.cancelOrders(stock=stock)
+    # order = clear.allOrderCancel()
     return order
 
 
@@ -93,11 +92,16 @@ def changeStop():
     changePosition = int(stock.get('change_position'))
     position = abs(int(clear.getPosition()))
     stock['last_price'] = str(clear.getLastPrice())
+
     if clear.limitPosition(stock=stock) and clear.canDouble(stock=stock, beforePosition=position) and changePosition == 1:
         clear.setOrderFast(stock=stock)
         os.environ['LAST_ORDEM_PRICE'] = stock.get('last_price')
-        stock["quantity"] = str(int(stock.get('quantity')) + position)
+        position = abs(int(clear.getPosition()))
+        #print("change quantity -> " + stock.get('quantity') + "  ===  " + str(position))
+        stock["quantity"] = position #str(int(stock.get('quantity')) + position)
     clear.cancelOrders(stock=stock)
+    time.sleep(0.5)
+    print(stock.get('quantity'))
     clear.setStop(stock=stock, beforePosition=position)
     stock["recipe"] = clear.getRecipe()
     return json.dumps(stock)

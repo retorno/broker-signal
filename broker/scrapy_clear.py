@@ -154,26 +154,14 @@ class ScrapyClear(WebDriver):
         else:
             stock['status'] = 'Test'
 
-    def allOrderCancel(self):
-        # import ipdb; ipdb.set_trace()
-        btn_order = self.getClass('bt_action')
-        if btn_order.text != 'Cancelar Todas':
-            self.getClass('bt_orders_boleta').click()
-            self.getClass('bt_open_orders_f').click()
-        listOrder = self.driver.find_element_by_class_name('middle_orders_overflow').text
-        if 'Aberto' in listOrder:
-            return False
-        else:
-           return True
-
     def cancelOrders(self, stock={}):
         # import ipdb; ipdb.set_trace()
-        while not self.allOrderCancel():
-            btn_order = self.getClass('bt_action')
-            btn_order.click()
-            self.assignOperation(stock= stock, type_order= TypeOrderEnum.CANCELAR.value)
-            self.exeCancelOrder()
-            stock['status'] = 'all order canceled';
+        self.getClass('bt_orders_boleta').click()
+        self.getClass('bt_open_orders_f').click()
+        btn_order = self.getClass('bt_action')
+        btn_order.click()
+        self.assignOperation(stock= stock, type_order= TypeOrderEnum.CANCELAR.value)
+        self.exeCancelOrder(stock=stock)
         return str(stock)
 
     def exeCancelOrder(self, stock={}):
