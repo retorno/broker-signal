@@ -98,6 +98,7 @@ def changeStop():
         stock["quantity"] += position
     clear.cancelOrders(stock=stock)
     clear.setStop(stock=stock, beforePosition=position)
+    stock["recipe"] = clear.getRecipe()
     return json.dumps(stock)
 
 
