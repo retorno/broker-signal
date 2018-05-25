@@ -196,11 +196,11 @@ class ScrapyClear(WebDriver):
         if beforePosition == 0:
             return True
         sendOperation = stock.get('operation') 
-        qt_double = stock.get('quantity_to_double')
+        pt_double = stock.get('point_to_double')
         if sendOperation == OperationEnum.COMPRA.value:  
-            double = stock.get('last_price') > (os.environ.get('LAST_ORDEM_PRICE') + qt_double)
+            double = stock.get('last_price') > (os.environ.get('LAST_ORDEM_PRICE') + pt_double)
         elif sendOperation == OperationEnum.VENDA.value:
-            double = stock.get('last_price') < (os.environ.get('LAST_ORDEM_PRICE') - qt_double)
+            double = stock.get('last_price') < (os.environ.get('LAST_ORDEM_PRICE') - pt_double)
         if not double:
             stock['status'] = 'did not reach value, not possible to double'
         return double
@@ -213,16 +213,18 @@ class ScrapyClear(WebDriver):
         # sendQuantity = int(stock.get('quantity'))
         lastPrice = float(self.getLastPrice())
         stopLoss = float(stock.get('stop_loss'))
+        calc_stop = int(stock.get('calculate_stop'))
         if sendOperation == OperationEnum.COMPRA.value:
-            if stock.get('calculate_stop') == 1:
+            if calc_stop:
                 stopLoss = lastPrice - stopLoss
             # if sendQuantity != beforePosition:
             #     currentPosition = beforePosition + sendQuantity
         elif sendOperation == OperationEnum.VENDA.value:
-            if stock.get('calculate_stop') == 1:
+            if calc_stop:
                 stopLoss = lastPrice + stopLoss
             # if sendQuantity != beforePosition:
             #     currentPosition = beforePosition - sendQuantity
+        print("###### lastPrice -> " + str(lastPrice) + " stopLoss -> " +  str(stopLoss)  + " calc stop -> " + str(stock.get('calculate_stop')))
         # if currentPosition != beforePosition:
         #     currentPosition = abs(int(self.getPosition(beforePosition= beforePosition)))
         # if currentPosition != 0:

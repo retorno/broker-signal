@@ -21,7 +21,7 @@ clear = None
 # production:1
 # change_position:1
 # calculate_stop:1
-# quantity_to_double:50
+# point_to_double:50
 
 
 @app.route('/broker/position', methods=['GET'])
@@ -58,7 +58,7 @@ def getHeaders(request):
              'production': request.headers['production'],
              'change_position': request.headers['change_position'],
              'calculate_stop': request.headers['calculate_stop'],
-             'quantity_to_double': request.headers['quantity_to_double']}
+             'point_to_double': request.headers['point_to_double']}
     return stock
 
 
@@ -76,12 +76,13 @@ def setStop():
     return order
 
 
-@app.route('/broker/cancel-order', methods=['POST'])
+@app.route('/broker/cancel-order', methods=['GET'])
 def cancelOrder():
     # import ipdb; ipdb.set_trace()
     # stock = getHeaders(request)
     # order = clear.cancelOrders(stock=stock)
-    order = clear.cancelOrders()
+    # order = clear.cancelOrders()
+    order = clear.allOrderCancel()
     return order
 
 
@@ -95,7 +96,7 @@ def changeStop():
     if clear.limitPosition(stock=stock) and clear.canDouble(stock=stock, beforePosition=position) and changePosition == 1:
         clear.setOrderFast(stock=stock)
         os.environ['LAST_ORDEM_PRICE'] = stock.get('last_price')
-        stock["quantity"] += position
+        stock["quantity"] = str(int(stock.get('quantity')) + position)
     clear.cancelOrders(stock=stock)
     clear.setStop(stock=stock, beforePosition=position)
     stock["recipe"] = clear.getRecipe()
