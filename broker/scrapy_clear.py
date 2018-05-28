@@ -97,17 +97,21 @@ class ScrapyClear(WebDriver):
             return True
         stock['status'] = 'limit max position ' + str(limit)
 
-    def getPosition(self, stock={}, beforePosition=0):
-        position = 0
-        count = 0
-        # import ipdb; ipdb.set_trace()
-        while count < self.tryGet:
-            # time.sleep(0.1)
-            position = int(self.driver.execute_script('return document.getElementsByClassName("input_gray")[3].value'))
-            if position == beforePosition:
-                return int(position)
-            count += 1
-        return str('0')
+    def getTruePosition(self, stock={}):
+        position = int(self.driver.execute_script('return document.getElementsByClassName("input_gray")[3].value'))
+        return str(position)
+
+    # def getPosition(self, stock={}):
+    #     position = 0
+    #     count = 0
+    #     # import ipdb; ipdb.set_trace()
+    #     while count < self.tryGet:
+    #         time.sleep(0.1)
+    #         position = int(self.driver.execute_script('return document.getElementsByClassName("input_gray")[3].value'))
+    #         if position == stock.get('quantity'):
+    #             return int(position)
+    #         count += 1
+    #     return str('0')
 
     def getMaxPosition(self, stock={}):
         # import ipdb;ipdb.set_trace()
@@ -184,40 +188,35 @@ class ScrapyClear(WebDriver):
         if beforePosition == 0:
             return True
         sendOperation = stock.get('operation') 
-        pt_double = stock.get('point_to_double')
+        pt_double = int(stock.get('point_to_double'))
+        order_price = int(os.environ.get('LAST_ORDEM_PRICE'))
+        last_price = float(stock.get('last_price'))
         if sendOperation == OperationEnum.COMPRA.value:  
-            double = stock.get('last_price') > (os.environ.get('LAST_ORDEM_PRICE') + pt_double)
+            double = last_price > (order_price + pt_double)
         elif sendOperation == OperationEnum.VENDA.value:
-            double = stock.get('last_price') < (os.environ.get('LAST_ORDEM_PRICE') - pt_double)
+            double = last_price < (order_price - pt_double)
         if not double:
             stock['status'] = 'did not reach value, not possible to double'
         return double
 
-    def setStop(self, stock= {}, beforePosition= 0):
+    def setStop(self, stock= {}):
         count = 0
         currentPosition = 0
         # import ipdb; ipdb.set_trace()
         sendOperation = stock.get('operation')
-        # sendQuantity = int(stock.get('quantity'))
         lastPrice = float(self.getLastPrice())
         stopLoss = float(stock.get('stop_loss'))
         calc_stop = int(stock.get('calculate_stop'))
         if sendOperation == OperationEnum.COMPRA.value:
             if calc_stop:
                 stopLoss = lastPrice - stopLoss
-            # if sendQuantity != beforePosition:
-            #     currentPosition = beforePosition + sendQuantity
         elif sendOperation == OperationEnum.VENDA.value:
             if calc_stop:
                 stopLoss = lastPrice + stopLoss
-            # if sendQuantity != beforePosition:
-            #     currentPosition = beforePosition - sendQuantity
         print("###### lastPrice -> " + str(lastPrice) + " stopLoss -> " +  str(stopLoss)  + " calc stop -> " + str(stock.get('calculate_stop')))
-        # if currentPosition != beforePosition:
-        #     currentPosition = abs(int(self.getPosition(beforePosition= beforePosition)))
-        # if currentPosition != 0:
+        # currentPosition = abs(int(self.getPosition(stock= stock)))
+
         stock['stop_loss'] = str(int(stopLoss))
-        # stock['quantity'] = str(currentPosition)
         stock['type_operation'] = TypeOrderEnum.STOP.value
         self.setOrder(stock= stock)
         stock['status'] = "order %s position %s" %(sendOperation, currentPosition)

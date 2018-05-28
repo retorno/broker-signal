@@ -26,7 +26,7 @@ clear = None
 
 @app.route('/broker/position', methods=['GET'])
 def getPosition():
-    position = clear.getPosition()
+    position = clear.getTruePosition()
     return str(position)
 
 
@@ -90,19 +90,23 @@ def changeStop():
     stock = getHeaders(request)
     # import ipdb; ipdb.set_trace()
     changePosition = int(stock.get('change_position'))
-    position = abs(int(clear.getPosition()))
+    position = abs(int(clear.getTruePosition()))
+    print("#position now -> " + str(position))
     stock['last_price'] = str(clear.getLastPrice())
-
-    if clear.limitPosition(stock=stock) and clear.canDouble(stock=stock, beforePosition=position) and changePosition == 1:
-        clear.setOrderFast(stock=stock)
-        os.environ['LAST_ORDEM_PRICE'] = stock.get('last_price')
-        position = abs(int(clear.getPosition()))
-        #print("change quantity -> " + stock.get('quantity') + "  ===  " + str(position))
-        stock["quantity"] = position #str(int(stock.get('quantity')) + position)
     clear.cancelOrders(stock=stock)
     time.sleep(0.5)
-    print(stock.get('quantity'))
-    clear.setStop(stock=stock, beforePosition=position)
+    if clear.limitPosition(stock=stock) and clear.canDouble(stock=stock, beforePosition=position) and changePosition == 1:
+        if position == 0:
+            stock["quantity"] = str(int(stock.get('quantity')) + position)
+        else:
+            stock["quantity"] = str(position * 2)
+        clear.setOrderFast(stock=stock)
+        os.environ['LAST_ORDEM_PRICE'] = stock.get('last_price')
+        print("#order now -> " + stock.get('quantity'))
+    else:
+        stock["quantity"] = str(position)
+    print("#quantiry now -> " + stock.get('quantity'))
+    clear.setStop(stock=stock)
     stock["recipe"] = clear.getRecipe()
     return json.dumps(stock)
 
