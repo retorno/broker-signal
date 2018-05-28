@@ -95,16 +95,27 @@ def changeStop():
     stock['last_price'] = str(clear.getLastPrice())
     clear.cancelOrders(stock=stock)
     time.sleep(0.5)
-    if clear.limitPosition(stock=stock) and clear.canDouble(stock=stock, beforePosition=position) and changePosition == 1:
+    if clear.canDouble(stock=stock, beforePosition=position) and changePosition == 1:
         if position == 0:
             stock["quantity"] = str(int(stock.get('quantity')) + position)
+            stock["quantitySell"] = str(int(stock.get('quantity')) + position)
+            print("#quantity AAAA -> " + stock.get('quantity'))
         else:
-            stock["quantity"] = str(position * 2)
-        clear.setOrderFast(stock=stock)
-        os.environ['LAST_ORDEM_PRICE'] = stock.get('last_price')
-        print("#order now -> " + stock.get('quantity'))
+            stock["quantity"] = str(position)
+            stock["quantitySell"] = str(position*2)
+            print("#quantity BBBB -> " + stock.get('quantity'))
+        if clear.limitPosition(stock=stock): 
+            clear.setOrderFast(stock=stock)
+            os.environ['LAST_ORDEM_PRICE'] = stock.get('last_price')
+            print("#quantity CCCC -> " + stock.get('quantity'))
+        else:
+            stock["quantity"] = position
+            stock["quantitySell"] = position
+            print("#quantity DDDD -> " + stock.get('quantity'))
     else:
         stock["quantity"] = str(position)
+        stock["quantitySell"] = position
+        print("#quantity EEEE -> " + stock.get('quantity'))
     print("#quantiry now -> " + stock.get('quantity'))
     clear.setStop(stock=stock)
     stock["recipe"] = clear.getRecipe()

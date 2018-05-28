@@ -226,7 +226,8 @@ class ScrapyClear(WebDriver):
     def setFormOrder(self, stock={}):
         edtQuantity = self.getId('msg_quantity')
         edtQuantity.clear()
-        edtQuantity.send_keys( stock.get('quantity') )
+        # edtQuantity.send_keys( stock.get('quantity') )
+        edtQuantity.send_keys( str(stock.get('quantitySell')) )
         edtStop = self.getId('msg_stoppx')
         edtStop.clear()
         edtStop.send_keys( stock.get('stop_loss') )
