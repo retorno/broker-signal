@@ -93,30 +93,27 @@ def changeStop():
     position = abs(int(clear.getTruePosition()))
     print("#position now -> " + str(position))
     stock['last_price'] = str(clear.getLastPrice())
+    os.environ['LIMIT_ORDEM_PRICE'] = stock.get('last_price')
     clear.cancelOrders(stock=stock)
     time.sleep(0.5)
     if clear.canDouble(stock=stock, beforePosition=position) and changePosition == 1:
-        if position == 0:
-            stock["quantity"] = str(int(stock.get('quantity')) + position)
-            stock["quantitySell"] = str(int(stock.get('quantity')) + position)
-            print("#quantity AAAA -> " + stock.get('quantity'))
-        else:
+        if position != 0:
             stock["quantity"] = str(position)
-            stock["quantitySell"] = str(position*2)
-            print("#quantity BBBB -> " + stock.get('quantity'))
-        if clear.limitPosition(stock=stock): 
+        if clear.limitPosition(stock=stock):
             clear.setOrderFast(stock=stock)
             os.environ['LAST_ORDEM_PRICE'] = stock.get('last_price')
             print("#quantity CCCC -> " + stock.get('quantity'))
+
+            # stock['can_double'] = str(can_double)
+            if position != 0:
+                stock["quantity"] = str(position * 2)
         else:
-            stock["quantity"] = position
-            stock["quantitySell"] = position
+            stock["quantity"] = str(position)
             print("#quantity DDDD -> " + stock.get('quantity'))
     else:
         stock["quantity"] = str(position)
-        stock["quantitySell"] = position
         print("#quantity EEEE -> " + stock.get('quantity'))
-    print("#quantiry now -> " + stock.get('quantity'))
+        stock['status'] = 'did not reach value, not possible to double'
     clear.setStop(stock=stock)
     stock["recipe"] = clear.getRecipe()
     return json.dumps(stock)

@@ -178,25 +178,34 @@ class ScrapyClear(WebDriver):
                 else:
                     btn_cancel = 'bt_fechar'
                 self.driver.execute_script('document.getElementsByClassName("%s")[2].click()' %btn_cancel)
+                # import ipdb; ipdb.set_trace()
                 return True
             except:
                 count += 1
                 pass
 
+    def updateCanDouble(self, stock={}):
+        pass
+
     def canDouble(self, stock= {}, beforePosition= 0):
         double = False
-        if beforePosition == 0:
-            return True
+        can_double = 0
         sendOperation = stock.get('operation') 
         pt_double = int(stock.get('point_to_double'))
-        order_price = int(os.environ.get('LAST_ORDEM_PRICE'))
         last_price = float(stock.get('last_price'))
+        if beforePosition == 0:
+            order_price = last_price
+        else:
+            order_price = int(os.environ.get('LAST_ORDEM_PRICE'))
         if sendOperation == OperationEnum.COMPRA.value:  
-            double = last_price > (order_price + pt_double)
+            can_double = order_price + pt_double
+            double = last_price > can_double
         elif sendOperation == OperationEnum.VENDA.value:
-            double = last_price < (order_price - pt_double)
-        if not double:
-            stock['status'] = 'did not reach value, not possible to double'
+            can_double = order_price - pt_double
+            double = last_price < can_double
+        stock['can_double'] = str(can_double)
+        if beforePosition == 0:
+            return True
         return double
 
     def setStop(self, stock= {}):
@@ -207,12 +216,16 @@ class ScrapyClear(WebDriver):
         lastPrice = float(self.getLastPrice())
         stopLoss = float(stock.get('stop_loss'))
         calc_stop = int(stock.get('calculate_stop'))
+        limit_price = 0
         if sendOperation == OperationEnum.COMPRA.value:
             if calc_stop:
                 stopLoss = lastPrice - stopLoss
+            limit_price = os.environ.get('LIMIT_ORDEM_PRICE')   
+               
         elif sendOperation == OperationEnum.VENDA.value:
             if calc_stop:
                 stopLoss = lastPrice + stopLoss
+            limit_price = os.environ.get('LIMIT_ORDEM_PRICE')
         print("###### lastPrice -> " + str(lastPrice) + " stopLoss -> " +  str(stopLoss)  + " calc stop -> " + str(stock.get('calculate_stop')))
         # currentPosition = abs(int(self.getPosition(stock= stock)))
 
@@ -222,12 +235,10 @@ class ScrapyClear(WebDriver):
         stock['status'] = "order %s position %s" %(sendOperation, currentPosition)
         return str(stock)
 
-
     def setFormOrder(self, stock={}):
         edtQuantity = self.getId('msg_quantity')
         edtQuantity.clear()
-        # edtQuantity.send_keys( stock.get('quantity') )
-        edtQuantity.send_keys( str(stock.get('quantitySell')) )
+        edtQuantity.send_keys( stock.get('quantity') )
         edtStop = self.getId('msg_stoppx')
         edtStop.clear()
         edtStop.send_keys( stock.get('stop_loss') )
