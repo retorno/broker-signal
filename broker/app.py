@@ -14,15 +14,14 @@ clear = None
 
 # to use set WINFUT = WINM18
 # test => post localhost:5000/broker/change-stop
-# active:WINFUT
-# quantity:1
-# operation:Buy
-# stop_loss:35
+# active:WINM18
+# quantity:5
+# operation:Sell
+# stop_loss:25
 # production:1
 # change_position:1
 # calculate_stop:1
-# point_to_double:50
-
+# point_to_double:200
 
 @app.route('/broker/position', methods=['GET'])
 def getPosition():
@@ -90,14 +89,12 @@ def changeStop():
     stock = getHeaders(request)
     # import ipdb; ipdb.set_trace()
     changePosition = int(stock.get('change_position'))
-    position = abs(int(clear.getTruePosition()))
+    position = abs(int(clear.getPosition()))
     print("#position now -> " + str(position))
     stock['last_price'] = str(clear.getLastPrice())
-    os.environ['LIMIT_ORDEM_PRICE'] = stock.get('last_price')
-    clear.cancelOrders(stock=stock)
-    time.sleep(0.5)
-    if clear.canDouble(stock=stock, beforePosition=position) and changePosition == 1:
-        if position != 0:
+    stock['status'] = []
+    if clear.canDouble(stock=stock, beforePosition=position):
+        if changePosition == 1 or position != 0:
             stock["quantity"] = str(position)
         if clear.limitPosition(stock=stock):
             clear.setOrderFast(stock=stock)
@@ -105,7 +102,7 @@ def changeStop():
             print("#quantity CCCC -> " + stock.get('quantity'))
 
             # stock['can_double'] = str(can_double)
-            if position != 0:
+            if changePosition == 1 and position != 0:
                 stock["quantity"] = str(position * 2)
         else:
             stock["quantity"] = str(position)
@@ -113,7 +110,9 @@ def changeStop():
     else:
         stock["quantity"] = str(position)
         print("#quantity EEEE -> " + stock.get('quantity'))
-        stock['status'] = 'did not reach value, not possible to double'
+        stock['status'] = stock.get('status').append('did not reach value, not possible to double')
+    clear.cancelOrders(stock=stock)
+    # time.sleep(0.5)
     clear.setStop(stock=stock)
     stock["recipe"] = clear.getRecipe()
     return json.dumps(stock)
@@ -125,6 +124,7 @@ def connectBroker():
     clear.openBroker()
     clear.setLogin()
     clear.closeModal()
+    clear.openPanelOrderFast()
     return clear
 
 
