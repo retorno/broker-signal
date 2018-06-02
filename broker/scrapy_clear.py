@@ -66,12 +66,14 @@ class ScrapyClear(WebDriver):
                 continue
                 # pass
 
-    def getId(self, seletorId):
+    def getId(self, seletorId, click=None):
         count = 0
         while count < self.tryGet:
             try:
                 _id = self.driver.find_element_by_id(seletorId)
                 if _id:
+                    if click:
+                        _id.click()
                     return _id
             except:
                 # time.sleep(0.1)
@@ -91,8 +93,8 @@ class ScrapyClear(WebDriver):
         dt_nasc = self.getClass('input_date')
         dt_nasc.clear()
         dt_nasc.send_keys(broker_dt_nasc)
-        self.getClass('bt_signin').click()
-        self.getClass('right').click()
+        self.getClass('bt_signin', click=True)
+        self.getClass('right', click=True)
         self.openBroker()
 
     def limitPosition(self, stock={}):
@@ -125,8 +127,8 @@ class ScrapyClear(WebDriver):
 
     def setOrderFast(self, stock={}):
         # import ipdb; ipdb.set_trace()
-        tab_orders_fast = self.getClass('bt_fast_boleta')
-        tab_orders_fast.click()
+        tab_orders_fast = self.getClass('bt_fast_boleta', click=True)
+        # tab_orders_fast.click()
         quantity = stock.get('quantity')
         self.driver.execute_script("document.getElementsByClassName('ng-valid-min')[4].value = %s" %quantity)
         self.assignOperation( stock= stock, type_order= TypeOrderEnum.AGRESSION.value )
@@ -140,7 +142,7 @@ class ScrapyClear(WebDriver):
                 btnClass = 'bt_fast_rollback'
             elif operation == OperationEnum.INVERT.value:
                 btnClass = 'bt_fast_flip'
-            self.getClass(btnClass).click()
+            self.getClass(btnClass, click=True)
             return str(stock)
         else:
             stock.get('status').append('running in test')
@@ -156,20 +158,31 @@ class ScrapyClear(WebDriver):
         count = 0
         while count < self.tryGet:
             try:
-                btn_order = self.getClass('bt_action')
-                btn_order.click()
-                self.assignOperation(stock= stock, type_order= TypeOrderEnum.CANCELAR.value)
-                self.exeCancelOrder(stock= stock)
-                return str(stock)
+                if not self.checkOrderCancel():
+                    btn_order = self.getClass('bt_action', click=True)
+                    # btn_order.click()
+                    self.assignOperation(stock= stock, type_order= TypeOrderEnum.CANCELAR.value)
+                    self.exeCancelOrder(stock= stock)
+                    return str(stock)
+                else:
+                    count += 1
             except:
                 self.openPanelOrderFast()
                 count += 1
 
+    def checkOrderCancel(self):
+        # import ipdb; ipdb.set_trace()
+        listOrder = self.getClass('middle_orders_overflow').text
+        if 'Aberto' in listOrder:
+            return False
+        else:
+            return True
+
     def openPanelOrderFast(self):
-        tab_ordens = self.getClass('bt_orders_boleta')
-        tab_ordens.click()
-        btn_orders_fast = self.getClass('bt_open_orders_f')
-        btn_orders_fast.click()
+        tab_ordens = self.getClass('bt_orders_boleta', click=True)
+        # tab_ordens.click()
+        btn_orders_fast = self.getClass('bt_open_orders_f', click=True)
+        # btn_orders_fast.click()
 
     def exeCancelOrder(self, stock={}):
         count = 0
@@ -279,7 +292,7 @@ class ScrapyClear(WebDriver):
         self.setFormOrder(stock= stock)
         self.assignOperation( stock= stock, type_order= TypeOrderEnum.LIMITED.value )
         if bool(int(stock.get('production'))):
-            self.getClass('bt_comprar').click()
+            self.getClass('bt_comprar', click=True)
         else:
             stock.get('status').append('running in test')
         stock.get('status').append('order -> %s position -> %s' %(sendOperation, stock.get('quantity')))
@@ -305,9 +318,8 @@ class ScrapyClear(WebDriver):
         try:
             # import ipdb; ipdb.set_trace()
             self.driver.execute_script('document.getElementsByClassName("bt_fechar_dis")[2].click()')
-            btnClose = self.getId('ipo_close')
-            if btnClose:
-                btnClose.click()
+            btnClose = self.getId('ipo_close', click=True)
+            # btnClose.click()
         except:
             pass
 
