@@ -23,7 +23,7 @@ class TypeOrderEnum(Enum):
 
 class ScrapyClear(WebDriver):
 
-    tryGet = 13
+    tryGet = 25
     def __init__(self, *args, **kwargs):
         config_chrome = {}
         # config_chrome['donwload_dir'] = settings.DOWNLOAD_DIR
