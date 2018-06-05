@@ -94,7 +94,7 @@ def changeStop():
     stock['last_price'] = str(clear.getLastPrice())
     stock['status'] = []
     if clear.canDouble(stock=stock, beforePosition=position):
-        if changePosition == 1 or position != 0:
+        if changePosition == 1 and position != 0:
             stock["quantity"] = str(position)
         if clear.limitPosition(stock=stock):
             clear.setOrderFast(stock=stock)
@@ -112,7 +112,6 @@ def changeStop():
         print("#quantity EEEE -> " + stock.get('quantity'))
         stock['status'] = stock.get('status').append('did not reach value, not possible to double')
     clear.cancelOrders(stock=stock)
-    # time.sleep(0.5)
     clear.setStop(stock=stock)
     stock["recipe"] = clear.getRecipe()
     return json.dumps(stock)
