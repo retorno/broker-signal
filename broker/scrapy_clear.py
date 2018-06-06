@@ -52,8 +52,7 @@ class ScrapyClear(WebDriver):
             try:
                 _class = self.driver.find_element_by_class_name(seletorClass)
                 if _class:
-                    if click:
-                        _class.click()
+                    if click: _class.click()
                     return _class
             except:
                 count += 1
@@ -65,8 +64,7 @@ class ScrapyClear(WebDriver):
             try:
                 _id = self.driver.find_element_by_id(seletorId)
                 if _id:
-                    if click:
-                        _id.click()
+                    if click: _id.click()
                     return _id
             except:
                 count += 1
@@ -139,32 +137,32 @@ class ScrapyClear(WebDriver):
         self.exeCancelOrder(stock=stock)
         return str(stock)
 
-    def cancelOrderAll(self, stock={}):
-        btn_order = self.getClass('bt_action', click=True)
+    def cancelOrders(self, stock={}):
+        self.getClass('bt_action', click=True)  # btn_order
         self.assignOperation(stock= stock, type_order= TypeOrderEnum.CANCELAR.value)
         self.exeCancelOrder(stock= stock)
 
-    def cancelOrders(self, stock={}):
+    def isOpenOrders(self):
+        # import ipdb; ipdb.set_trace()
         count = 0
-        self.cancelOrderAll(stock= stock)
         while count < self.tryGet:
             try:
-                if not self.isCanceledOrders():
-                    self.cancelOrderAll(stock= stock)
-                    count += 1
+                listOrder = self.getClass('middle_orders_overflow').text
+                if 'Aberto' in listOrder:
+                    return True
                 else:
-                    return str(stock)
+                    count += 1
             except:
-                self.openPanelOrderFast()
                 count += 1
 
-    def isCanceledOrders(self):
-        # import ipdb; ipdb.set_trace()
-        listOrder = self.getClass('middle_orders_overflow').text
-        if 'Aberto' in listOrder:
-            return False
-        else:
-            return True
+    def checkStop(self, stock={}):
+        count = 0
+        while count < self.tryGet:
+            if self.isOpenOrders():
+                return True
+            else:
+                self.setStop(stock=stock)
+                count += 1
 
     def openPanelOrderFast(self):
         self.getClass('bt_orders_boleta', click=True) # tab_ordens
