@@ -148,7 +148,7 @@ class ScrapyClear(WebDriver):
         while count < self.tryGet:
             try:
                 listOrder = self.getClass('middle_orders_overflow').text
-                if 'Aberto' in listOrder:
+                if 'Aberta' in listOrder:
                     return True
                 else:
                     count += 1
@@ -187,7 +187,7 @@ class ScrapyClear(WebDriver):
     def canDouble(self, stock= {}, beforePosition= 0):
         double = False
         can_double = 0
-        sendOperation = stock.get('operation') 
+        sendOperation = stock.get('operation')
         pt_double = int(stock.get('point_to_double'))
         last_price = float(stock.get('last_price'))
         if beforePosition == 0:
@@ -209,11 +209,11 @@ class ScrapyClear(WebDriver):
         return str(position)
 
     def getTruePosition(self, stock={}):
-        position = 0
         count = 0
         sendQuantity = int(stock.get('quantity'))
         while count < self.tryGet:
             currentPosition = abs(int(self.getPosition()))
+            print("###### currentPosition -> " + str(currentPosition) + " sendQuantity -> " + str(sendQuantity))
             if sendQuantity == currentPosition:
                 count = self.tryGet
                 return True
@@ -239,7 +239,9 @@ class ScrapyClear(WebDriver):
             stock['type_operation'] = TypeOrderEnum.STOP.value
             self.setOrder(stock= stock)
         else:
-            self.zeraAll()
+            currentPosition = self.getPosition()
+            if currentPosition != "0":
+                self.zeraAll()
             stock.get('status').append('position => %s in the broker is different' %stock.get('quantity'))
         return str(stock)
 
