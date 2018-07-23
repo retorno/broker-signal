@@ -17,6 +17,7 @@ var/
 *.egg
 *.pyc
 env.bat
+env.json
 .idea/
 venv/
 

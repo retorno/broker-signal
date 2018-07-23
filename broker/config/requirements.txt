@@ -1,0 +1,4 @@
+flask
+flask_restful
+selenium==3.10.0
+celery
