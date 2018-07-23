@@ -6,11 +6,10 @@ app = Flask(__name__)
 api = Api(app)
 clear = None
 
-# active:WDOQ18
 # quantity:2
+# value:79890
 # operation:Buy
 # type_operation:['Limitada', 'Stop']
-# stop_loss:3
 
 
 @app.route('/broker/position', methods=['GET'])
@@ -37,8 +36,8 @@ def cancelAll():
 
 @app.route('/broker/set-order', methods=['POST'])
 def setOrder():
-    order = clear.setOrder(stock=request.json)
-    return order
+    clear.setOrder(stock=request.json)
+    return "OK"
 
 
 def connectBroker():

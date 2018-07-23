@@ -90,6 +90,7 @@ class ScrapyClear(WebDriver):
         self.getClass('bt_action', click=True)  # btn_order
         self.assignOperation(type_order=TypeOrderEnum.CANCELAR)
         self.exeCancelOrder()
+        return "OK"
 
     def openPanelOrderFast(self):
         self.getClass('bt_orders_boleta', click=True)  # tab_ordens
@@ -113,16 +114,16 @@ class ScrapyClear(WebDriver):
         edtQuantity = self.getId('msg_quantity')
         edtQuantity.clear()
         edtQuantity.send_keys(stock["quantity"])
-        edtStop = self.getId('msg_stoppx')
-        edtStop.clear()
-        edtStop.send_keys(stock["stop_loss"])
+        edtValue = self.getId("msg_price")
+        edtValue.clear()
+        edtValue.send_keys(stock["value"])
 
     def setOrder(self, stock):
         sendOperation = stock["operation"]
         if sendOperation == OperationEnum.COMPRA:
-            btnClass = 'bt_red_boleta'
-        else:  # sendOperation == OperationEnum.VENDA:
             btnClass = 'bt_blue_boleta'
+        else:  # sendOperation == OperationEnum.VENDA:
+            btnClass = 'bt_red_boleta'
         self.getClass(btnClass, click=True)  # tab_buy_sell
         typeOperation = stock["type_operation"]  # ['Limitada', 'Stop']
         comboTipo = self.driver.find_element_by_xpath(
