@@ -1,10 +1,10 @@
 flask
 flask_restful
 selenium==3.10.0
-celery
-redis
+#celery
 #winspeech
 ipdb
-redis
-xlrd
-firebase-admin
+#redis
+#xlrd
+#firebase-admin
+pyrebase

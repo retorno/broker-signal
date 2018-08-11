@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from webselenium import WebDriver
 from enum import Enum
 import os, time
+from stock_firebase import saveFirebase
 
 if os.name != 'posix':
     import winspeech
@@ -236,7 +237,8 @@ class ScrapyClear(WebDriver):
         limitOrdemPrice = stock.get('last_price')
         stock['stop_loss_final'] = self.getPriceStop(stock= stock)
         stock['type_operation'] = TypeOrderEnum.STOP.value
-        self.setOrder(stock= stock)       
+        self.setOrder(stock= stock)
+        saveFirebase(stock= stock)
 
     def setFormOrder(self, stock={}):
         edtQuantity = self.getId('msg_quantity')
