@@ -90,7 +90,6 @@ def changeStop():
     # import ipdb; ipdb.set_trace()
     changePosition = int(stock.get('change_position'))
     position = abs(int(clear.getPosition()))
-    print("#position now -> " + str(position))
     stock['last_price'] = str(clear.getLastPrice())
     stock['status'] = []
     if clear.canDouble(stock=stock, beforePosition=position):
@@ -98,21 +97,14 @@ def changeStop():
             stock["quantity"] = str(position)
         if clear.limitPosition(stock=stock):
             clear.setOrderFast(stock=stock)
-            os.environ['LAST_ORDEM_PRICE'] = stock.get('last_price')
-            print("#quantity CCCC -> " + stock.get('quantity'))
-
-            # stock['can_double'] = str(can_double)
+            clear.lastOrderPrice = stock.get('last_price')
             if changePosition == 1 and position != 0:
                 stock["quantity"] = str(position * 2)
         else:
             stock["quantity"] = str(position)
-            print("#quantity DDDD -> " + stock.get('quantity'))
     else:
         stock["quantity"] = str(position)
-        print("#quantity EEEE -> " + stock.get('quantity'))
-        stock['status'] = stock.get('status').append('did not reach value, not possible to double')
-    clear.cancelOrders(stock=stock)
-    clear.setStop(stock=stock)
+        stock.get('status').append('did not reach value, not possible to double')
     clear.checkStop(stock=stock)
     stock["recipe"] = clear.getRecipe()
     return json.dumps(stock)
@@ -132,4 +124,4 @@ if __name__ == '__main__':
     connectBroker()
     # worker = WorkerConnect()
     # worker.execute('broker.run', args={'test': 'sim'})
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5005)
