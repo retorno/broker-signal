@@ -106,7 +106,6 @@ def changeStop():
         stock["quantity"] = str(position)
         stock.get('status').append('did not reach value, not possible to double')
     clear.checkStop(stock=stock)
-    stock["recipe"] = clear.getRecipe()
     return json.dumps(stock)
 
 
