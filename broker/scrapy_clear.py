@@ -4,6 +4,7 @@ from webselenium import WebDriver
 from enum import Enum
 import os, time
 from stock_firebase import saveFirebase
+import re
 
 if os.name != 'posix':
     import winspeech
@@ -198,14 +199,38 @@ class ScrapyClear(WebDriver):
             stopLoss = lastPrice + stopLoss
         return str(int(stopLoss))
 
+    def ordersOpen(self):
+        qtd_open = 0
+        qtd_buy = 0
+        qtd_sell = 0
+        orders = self.getClass('middle_orders_overflow').text
+        #orders = 'WINV18 - Compra Stop\n1\nMarket\nExecutada\nWINV18 - Venda\n1\nMarket\nExecutada\nWINV18 - Compra Stop\n1\nMarket\nExecutada\nWINV18 - Venda\n1\nMarket\nExecutada\nWINV18 - Venda Stop\n1\nMarket\nExecutada\nWINV18 - Compra\n1\nMarket\nExecutada\nWINV18 - Compra Stop\n1\nMarket\nExecutada\nWINV18 - Venda\n1\nMarket\nExecutada\nWINV18 - Compra Stop\n1\nMarket\nExecutada\nWINV18 - Venda\n1\nMarket\nExecutada'
+        #import ipdb; ipdb.set_trace()
+
+        orders_open = list(filter(lambda x: "Aberta" in x, orders.split(" - ")))
+        for order in orders_open:
+            position = re.split("\n", order)
+            if len(position) > 1:
+                qtd_open += int(position[1])
+                operation = position[0].split(" ")[0]
+                if operation == "Compra":
+                    qtd_buy += int(position[1])
+                elif operation == "Venda":
+                    qtd_sell += int(position[1])
+        return {"qtd_open": qtd_open, "qtd_buy": qtd_buy, "qtd_sell": qtd_sell}
+
     def isOpenOrders(self, stock={}):
         count = 0
+        sendOperation = stock.get('operation')
         while count < self.tryGet:
             try:
                 time.sleep(0.2)
-                listOrder = self.getClass('middle_orders_overflow').text
-                if 'Aberta' in listOrder:
-                    return True
+                orders_open = self.ordersOpen()
+                if orders_open.get("qtd_open") == stock.get("quantity"):
+                    if sendOperation == OperationEnum.COMPRA.value and orders_open.get("qtd_buy") == stock.get("quantity"):
+                        return True
+                    elif sendOperation == OperationEnum.VENDA.value and orders_open.get("qtd_sell") == stock.get("quantity"):
+                        return True
                 count += 1
             except:
                 count += 1
@@ -225,7 +250,6 @@ class ScrapyClear(WebDriver):
     def checkStop(self, stock={}):
         count = 0
         if self.getTruePosition(stock=stock):
-            self.setStop(stock=stock)
             while count < self.tryGet:
                 if self.isOpenOrders(stock=stock):
                     stock["recipe"] = self.getRecipe()
