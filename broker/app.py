@@ -6,8 +6,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from worker import WorkerConnect
 from scrapy_clear import ScrapyClear
 import os, time, json
+from flask import Flask, request, Response
+# from flask.ext.cors import CORS, cross_origin
+from flask_cors import CORS, cross_origin
+import requests
+
 
 app = Flask(__name__)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 api = Api(app)
 clear = None
 # conda activate py36
@@ -22,6 +29,32 @@ clear = None
 # change_position:1
 # calculate_stop:1
 # point_to_double:200
+
+
+@app.route('/broker/auth', methods=['GET', 'POST', 'OPTIONS'])
+@cross_origin(origin='*',headers=['Content-Type','Authorization'])
+def auth():
+	data = {"token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsY2puZXRvQGdtYWlsLmNvbSIsImV4cCI6MTUyMDczMTA5NX0.4ggbTz0fJxB6NcxLDIY9wOige-19aTsSQDdn31SmncK6ggY1wRsFPdax4DmKKjXHVz6iylLfeYYloaP4EUsm1w",
+			"user": {"email": "lcjneto@gmail.com",
+			"last_login": "2018-03-04 01:04:04.589",
+			"name": "roo",
+			"username": "lcjneto@gmail.com"}
+	}
+	resp = Response(json.dumps(data))
+	# resp.headers['Access-Control-Allow-Credentials'] = 'true'
+	return resp
+
+
+@app.route('/broker/profile', methods=['GET', 'POST', 'OPTIONS'])
+@cross_origin(origin='*',headers=['Content-Type','Authorization'])
+def profile():
+	data = {"hasSecurityPhrase": "false",
+			"hasTwoFactor": "false",
+			"localCurrencyLimit": '0',
+			"securityPhrase": ''}
+	resp = Response(json.dumps(data))
+	return resp
+
 
 @app.route('/broker/position', methods=['GET'])
 def getPosition():
@@ -84,10 +117,31 @@ def cancelOrder():
     return order
 
 
-@app.route('/broker/change-stop', methods=['POST'])
+def getStock(request):
+    operation = None
+    if request.values['isBuy'] == 'true':
+        operation = "Buy"
+    else:
+        operation = "Sell"
+    stock = {'active': request.values['currencyPair'],
+             'quantity': request.values['amount'],
+             'operation': operation,
+             'stop_loss': request.values['price'],
+             'production': "1",
+             'change_position': "1",
+             'calculate_stop': "1",
+             'point_to_double': "100"}
+    print(stock)
+    return stock
+
+
+# @app.route('/broker/change-stop', methods=['POST'])
+@app.route('/broker/newOrder', methods=['GET', 'POST', 'OPTIONS'])
+@cross_origin(origin='*',headers=['Content-Type','Authorization'])
 def changeStop():
-    stock = getHeaders(request)
     # import ipdb; ipdb.set_trace()
+    # stock = getHeaders(request)
+    stock = getStock(request)
     changePosition = int(stock.get('change_position'))
     position = abs(int(clear.getPosition()))
     stock['last_price'] = str(clear.getLastPrice())

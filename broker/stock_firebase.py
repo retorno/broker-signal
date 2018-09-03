@@ -17,5 +17,6 @@ def saveFirebase(stock= {}):
     day = datetime.today().strftime('%Y%m%d')
     hour = datetime.today().strftime('%H:%M:%S')
     recipe = stock.get("recipe")
+    db.child("invest").update({"recipe": recipe})
     db.child("invest").child(day).update({"recipe": recipe})
     db.child("invest").child(day).child(hour).update(stock)

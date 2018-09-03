@@ -191,11 +191,13 @@ class ScrapyClear(WebDriver):
     def getPriceStop(self, stock={}):
         lastPrice = float(self.getLastPrice())
         stopLoss = float(stock.get('stop_loss'))
-        calc_stop = int(stock.get('calculate_stop'))
+        # calc_stop = int(stock.get('calculate_stop'))
         sendOperation = stock.get('operation')
-        if calc_stop and sendOperation == OperationEnum.COMPRA.value:
+        # if calc_stop and 
+        if sendOperation == OperationEnum.COMPRA.value:
             stopLoss = lastPrice - stopLoss
-        elif calc_stop and sendOperation == OperationEnum.VENDA.value:
+        # elif calc_stop and 
+        elif sendOperation == OperationEnum.VENDA.value:
             stopLoss = lastPrice + stopLoss
         return str(int(stopLoss))
 
@@ -249,7 +251,7 @@ class ScrapyClear(WebDriver):
 
     def checkStop(self, stock={}):
         count = 0
-        if self.getTruePosition(stock=stock):
+        if True: #self.getTruePosition(stock=stock):
             while count < self.tryGet:
                 if self.isOpenOrders(stock=stock):
                     stock["recipe"] = self.getRecipe()
