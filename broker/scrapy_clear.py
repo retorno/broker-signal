@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from webselenium import WebDriver
 from enum import Enum
 import os, time
-from stock_firebase import saveFirebase
+# from broker.stock_firebase import saveFirebase
 import re
 
 if os.name != 'posix':
@@ -26,8 +26,9 @@ class TypeOrderEnum(Enum):
 class ScrapyClear(WebDriver):
 
     tryGet = 13
-    lastOrderPrice = 0
-    limitOrdemPrice = 0
+    priceLastOrder = 0    # verify canDouble
+    priceLastStop = 0     # virify canAdjustPriceStop
+
     def __init__(self, *args, **kwargs):
         config_chrome = {}
         # config_chrome['donwload_dir'] = settings.DOWNLOAD_DIR
@@ -37,7 +38,7 @@ class ScrapyClear(WebDriver):
         # config_chrome['screenshot_date_mask'] = '%Y-%m-%d__%H:%M:%S'
         # config_chrome['command_executor_ip'] = 'localhost'
         # config_chrome['command_executor_mask'] = 'http://{0}:4444/wd/hub'
-        super(ScrapyClear, self).__init__(config= config_chrome)
+        super().__init__(config= config_chrome)
 
     def openBroker(self):
         # self.driver.manage().window().setSize(windowMinSize)
@@ -60,6 +61,7 @@ class ScrapyClear(WebDriver):
                     return _class
             except:
                 count += 1
+                # pass
 
     def getId(self, seletorId, click=None):
         count = 0
@@ -71,6 +73,7 @@ class ScrapyClear(WebDriver):
                     return _id
             except:
                 count += 1
+                # pass
 
     def setLogin(self, username=None):
         broker_cpf_cnpj = os.environ.get('BROKER_CPF_CNPJ')
@@ -131,14 +134,19 @@ class ScrapyClear(WebDriver):
             elif operation == OperationEnum.INVERT.value:
                 btnClass = 'bt_fast_flip'
             self.getClass(btnClass, click=True)
-            return str(stock)
         else:
             stock.get('status').append('running in test')
+        self.priceLastOrder = 0
+        self.priceLastStop = 0
+        return str(stock)
 
     def zeraAll(self, stock={}):
+        self.cancelOrders(stock= stock)
         self.driver.execute_script("document.getElementsByClassName('bt_action')[1].click()")
         self.assignOperation(type_order= TypeOrderEnum.ZERAR.value)
         self.exeCancelOrder(stock=stock)
+        self.priceLastOrder = 0
+        self.priceLastStop = 0
         return str(stock)
 
     def cancelOrders(self, stock={}):
@@ -157,58 +165,45 @@ class ScrapyClear(WebDriver):
                 return True
             except:
                 count += 1
+                # pass
 
     def orderFail(self):
         self.driver.execute_script('document.getElementsByClassName("docket-msg")[4].innerHTML == "%s"' %"Processando ordem anterior...")
 
-    def canDouble(self, stock= {}, beforePosition= 0):
-        double = False
-        can_double = 0
-        sendOperation = stock.get('operation')
+    def canDouble(self, stock= {}):
+        can_double = False
+        point_to_double = 0
+        send_operation = stock.get('operation')
         pt_double = float(stock.get('point_to_double'))
-        last_price = float(stock.get('last_price'))
-        if beforePosition == 0:
-            order_price = last_price
-            return True
-        else:
-            order_price = float(self.lastOrderPrice)
-        print("order_price => " + str(order_price) + " pt_double => " + str(pt_double))
-        if sendOperation == OperationEnum.COMPRA.value:  
-            can_double = order_price + pt_double
-            double = last_price > can_double
-        elif sendOperation == OperationEnum.VENDA.value:
-            can_double = order_price - pt_double
-            double = last_price < can_double
-        stock['can_double'] = str(can_double)
-        return double
+        last_price = float(self.getLastPrice())
+        if self.priceLastOrder == 0:
+            self.priceLastOrder = last_price
+        if send_operation == OperationEnum.COMPRA.value:  
+            point_to_double = float(self.priceLastOrder) + pt_double
+            can_double = last_price > point_to_double
+        elif send_operation == OperationEnum.VENDA.value:
+            point_to_double = float(self.priceLastOrder) - pt_double
+            can_double = last_price < point_to_double
+        stock['point_to_double'] = str(point_to_double)
+        print("price_last_order => " + str(float(self.priceLastOrder)) + " to double => " + str(point_to_double))
+        return can_double
+
+    def updatePosition(self):
+        self.getClass("bt_red_boleta", click= True)
+        self.getClass("bt_blue_boleta", click= True)
 
     def getPosition(self):
+        self.updatePosition()
         position = self.driver.execute_script('return document.getElementsByClassName("input_gray")[3].value')
         if not position:
             return "0"
         return str(position)
-
-    def getPriceStop(self, stock={}):
-        lastPrice = float(self.getLastPrice())
-        stopLoss = float(stock.get('stop_loss'))
-        # calc_stop = int(stock.get('calculate_stop'))
-        sendOperation = stock.get('operation')
-        # if calc_stop and 
-        if sendOperation == OperationEnum.COMPRA.value:
-            stopLoss = lastPrice - stopLoss
-        # elif calc_stop and 
-        elif sendOperation == OperationEnum.VENDA.value:
-            stopLoss = lastPrice + stopLoss
-        return str(int(stopLoss))
 
     def ordersOpen(self):
         qtd_open = 0
         qtd_buy = 0
         qtd_sell = 0
         orders = self.getClass('middle_orders_overflow').text
-        #orders = 'WINV18 - Compra Stop\n1\nMarket\nExecutada\nWINV18 - Venda\n1\nMarket\nExecutada\nWINV18 - Compra Stop\n1\nMarket\nExecutada\nWINV18 - Venda\n1\nMarket\nExecutada\nWINV18 - Venda Stop\n1\nMarket\nExecutada\nWINV18 - Compra\n1\nMarket\nExecutada\nWINV18 - Compra Stop\n1\nMarket\nExecutada\nWINV18 - Venda\n1\nMarket\nExecutada\nWINV18 - Compra Stop\n1\nMarket\nExecutada\nWINV18 - Venda\n1\nMarket\nExecutada'
-        #import ipdb; ipdb.set_trace()
-
         orders_open = list(filter(lambda x: "Aberta" in x, orders.split(" - ")))
         for order in orders_open:
             position = re.split("\n", order)
@@ -221,64 +216,74 @@ class ScrapyClear(WebDriver):
                     qtd_sell += int(position[1])
         return {"qtd_open": qtd_open, "qtd_buy": qtd_buy, "qtd_sell": qtd_sell}
 
-    def isOpenOrders(self, stock={}):
-        count = 0
-        sendOperation = stock.get('operation')
-        while count < self.tryGet:
-            try:
-                time.sleep(0.2)
-                orders_open = self.ordersOpen()
-                if orders_open.get("qtd_open") == stock.get("quantity"):
-                    if sendOperation == OperationEnum.COMPRA.value and orders_open.get("qtd_buy") == stock.get("quantity"):
-                        return True
-                    elif sendOperation == OperationEnum.VENDA.value and orders_open.get("qtd_sell") == stock.get("quantity"):
-                        return True
-                count += 1
-            except:
-                count += 1
-
-    def getTruePosition(self, stock={}):
-        count = 0
-        sendQuantity = int(stock.get('quantity'))
-        currentPosition = 0
-        while count < self.tryGet:
-            time.sleep(0.2)
-            currentPosition = abs(int(self.getPosition()))
-            if sendQuantity == currentPosition and currentPosition != 0:
-                return True
-            count += 1
-        return currentPosition
-
     def checkStop(self, stock={}):
         count = 0
-        if True: #self.getTruePosition(stock=stock):
-            while count < self.tryGet:
-                if self.isOpenOrders(stock=stock):
-                    stock["recipe"] = self.getRecipe()
-                    saveFirebase(stock= stock)
-                    return True
-                else:
-                    self.cancelOrders(stock=stock)
-                    print("=>>  acabou de cancelar tudo !!!")
-                    self.setStop(stock=stock)
-                count += 1
-        else:
-            self.zeraAll()
-        stock.get('status').append('position => %s in the broker is different' %stock.get('quantity'))
+        while count < self.tryGet:
+            orders_open = self.ordersOpen()
+            print("orders_open => " + str(orders_open))
+            qtd_open = orders_open.get("qtd_open")
+            qtd_buy = orders_open.get("qtd_buy")
+            qtd_sell = orders_open.get("qtd_sell")
+            currentPosition = abs(int(self.getPosition()))
+            stock["quantity"] = str(currentPosition)
+            stock["last_price"] = self.getLastPrice()
+            if qtd_open == currentPosition and (qtd_buy + qtd_sell) == currentPosition and self.canAdjustPriceStop(stock=stock):
+                self.setStop(stock=stock)
+                return True
+            elif qtd_open == 0:
+                self.setStop(stock=stock)
+            elif currentPosition == 0 or self.skipStop(stock=stock):
+                self.zeraAll()
+                return False
+            count += 1
+        self.zeraAll()
+
+    def canAdjustPriceStop(self, stock= {}):
+        sendOperation = stock.get('operation')
+        price_stop = float(self.getPriceStop(stock=stock))
+        if self.priceLastStop == 0:
+            self.priceLastStop = price_stop
+        if sendOperation == OperationEnum.COMPRA.value and self.priceLastStop <= price_stop:
+            self.priceLastStop = price_stop
+            return True
+        elif sendOperation == OperationEnum.VENDA.value and self.priceLastStop >= price_stop:
+            self.priceLastStop = price_stop
+            return True
+        return False
+
+    def skipStop(self, stock= {}):
+        lastPrice = float(stock.get("last_price"))
+        sendOperation = stock.get('operation')
+        if sendOperation == OperationEnum.COMPRA.value and lastPrice <= self.priceLastStop:
+            return True
+        elif sendOperation == OperationEnum.VENDA.value and lastPrice >= self.priceLastStop:
+            return True
+        return False
 
     def setStop(self, stock= {}):
-        limitOrdemPrice = stock.get('last_price')
-        stock['stop_loss_final'] = self.getPriceStop(stock= stock)
-        stock['type_operation'] = TypeOrderEnum.STOP.value
-        self.setOrder(stock= stock)
+        if stock.get("quantity") != "0":
+            price_stop = self.getPriceStop(stock= stock)
+            stock['price_stop'] = price_stop
+            stock['type_operation'] = TypeOrderEnum.STOP.value
+            self.cancelOrders(stock=stock)
+            self.setOrder(stock= stock)
+            stock["recipe"] = self.getRecipe()
+            # saveFirebase(stock= stock)
+            print('Send stop => %s quant => %s in price => %s' %(stock.get('operation'), stock.get('quantity'), price_stop))
+            print("------------------------------------------------------------------------------------------------")
 
-    def setFormOrder(self, stock={}):
-        edtQuantity = self.getId('msg_quantity')
-        edtQuantity.clear()
-        edtQuantity.send_keys( stock.get('quantity') )
-        edtStop = self.getId('msg_stoppx')
-        edtStop.clear()
-        edtStop.send_keys( stock.get('stop_loss_final') )
+    def getPriceStop(self, stock= {}):
+        #calculate_stop (0 = False, 1 = True)
+        lastPrice = float(stock.get("last_price"))
+        stopLoss = float(stock.get('stop_loss'))
+        sendOperation = stock.get('operation')
+        calc_stop = int(stock.get('calculate_stop'))
+        if calc_stop == 1:
+            if sendOperation == OperationEnum.COMPRA.value:
+                stopLoss = lastPrice - stopLoss
+            if sendOperation == OperationEnum.VENDA.value:
+                stopLoss = lastPrice + stopLoss
+        return str(int(stopLoss))
 
     def setOrder(self, stock={}):
         sendOperation = stock.get('operation')
@@ -295,6 +300,14 @@ class ScrapyClear(WebDriver):
         if bool(int(stock.get('production'))):
             self.getClass('bt_comprar', click=True)
         # self.sayExecute(stock= stock)
+
+    def setFormOrder(self, stock={}):
+        edtQuantity = self.getId('msg_quantity')
+        edtQuantity.clear()
+        edtQuantity.send_keys( stock.get('quantity') )
+        edtStop = self.getId('msg_stoppx')
+        edtStop.clear()
+        edtStop.send_keys( stock.get('price_stop') )
 
     def assignOperation(self, stock={}, type_order=None):
         operation = {TypeOrderEnum.LIMITED.value: '0',
@@ -320,11 +333,10 @@ class ScrapyClear(WebDriver):
                 self.getClass('bt_open_orders_f', click=True) # btn_orders_fast
                 return True
             except:
-                count += 1
                 self.closeModal()
+                count += 1
 
     def closeModal(self):
-        # import ipdb; ipdb.set_trace()
         try:
             self.driver.execute_script('document.getElementsByClassName("bt_fechar_dis")[3].click()')
             self.driver.execute_script('document.getElementsByClassName("bt_fechar_dis")[2].click()')
