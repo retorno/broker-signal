@@ -3,14 +3,14 @@ from flask_restful import reqparse, abort, Api, Resource
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import WebDriverWait
-from worker import WorkerConnect
-from scrapy_clear import ScrapyClear
 import os, time, json
 from flask import Flask, request, Response
 # from flask.ext.cors import CORS, cross_origin
 from flask_cors import CORS, cross_origin
-import requests
+from broker.scrapy_clear import ScrapyClear
+# from broker.stock_beeline import StockBeeline
 
+# import requests
 
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -135,37 +135,41 @@ def getStock(request):
     return stock
 
 
-# @app.route('/broker/change-stop', methods=['POST'])
-@app.route('/broker/newOrder', methods=['GET', 'POST', 'OPTIONS'])
-@cross_origin(origin='*',headers=['Content-Type','Authorization'])
+@app.route('/broker/save-winfut', methods=['GET'])
+def saveBroker():
+    lastPrice = getLastPrice()
+    stock = getHeaders(request)
+    stock["price"] = lastPrice
+    bl = StockBeeline()
+    bl.saveBroker(stock=stock)
+    
+
+@app.route('/broker/change-stop', methods=['POST'])
+# @app.route('/broker/newOrder', methods=['GET', 'POST', 'OPTIONS'])
+# @cross_origin(origin='*',headers=['Content-Type','Authorization'])
 def changeStop():
-    # import ipdb; ipdb.set_trace()
-    # stock = getHeaders(request)
-    stock = getStock(request)
+    stock = getHeaders(request)
+    print("init => " + str(stock))
     changePosition = int(stock.get('change_position'))
     position = abs(int(clear.getPosition()))
-    stock['last_price'] = str(clear.getLastPrice())
     stock['status'] = []
-    if clear.canDouble(stock=stock, beforePosition=position):
+    if position == 0 or clear.canDouble(stock=stock):
         if changePosition == 1 and position != 0:
             stock["quantity"] = str(position)
         if clear.limitPosition(stock=stock):
             clear.setOrderFast(stock=stock)
-            clear.lastOrderPrice = stock.get('last_price')
-            if changePosition == 1 and position != 0:
-                stock["quantity"] = str(position * 2)
         else:
-            stock["quantity"] = str(position)
-    else:
-        stock["quantity"] = str(position)
-        stock.get('status').append('did not reach value, not possible to double')
+            clear.zeraAll(stock=stock)
+            stock.get('status').append('Not possible send order, is limit position')
     clear.checkStop(stock=stock)
+    print("final => " + str(stock))
     return json.dumps(stock)
 
 
 def connectBroker():
     global clear
     clear = ScrapyClear()
+    # time.sleep(2)
     clear.openBroker()
     clear.setLogin()
     clear.closeModal()
@@ -174,7 +178,11 @@ def connectBroker():
 
 
 if __name__ == '__main__':
+    # if os.name != 'posix':
+    #     os.system("env.bat")
     connectBroker()
     # worker = WorkerConnect()
     # worker.execute('broker.run', args={'test': 'sim'})
-    app.run(debug=True, host='0.0.0.0', port=5005)
+    # sudo lsof -t -i tcp:5018 | xargs kill
+    # app.run(debug=True, host='0.0.0.0', port=5018)
+    app.run(host='0.0.0.0', port=5018)
