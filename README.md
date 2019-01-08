@@ -1,4 +1,4 @@
-# bankscraper
+# clearScraper
 
 
 ## Usage
