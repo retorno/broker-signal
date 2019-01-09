@@ -1,27 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from webselenium import WebDriver
-from enum import Enum
-import os, time
-# from broker.stock_firebase import saveFirebase
+from utils.stock_firebase import saveFirebase
+from broker.scrapy_clear import OperationEnum, TypeOrderEnum
+import os
+import time
 import re
 
 if os.name != 'posix':
     import winspeech
 
-
-class OperationEnum(Enum):
-    COMPRA = 'Buy'
-    VENDA = 'Sell'
-    ZERAR = 'Zerar'
-    INVERT = 'Invert'
-
-class TypeOrderEnum(Enum):
-    STOP = 'Stop'
-    LIMITED = 'Limited'
-    AGRESSION = 'Aggression'
-    CANCELAR = 'Cancelar'
-    ZERAR = 'Zerar'
 
 class ScrapyClear(WebDriver):
 
@@ -31,24 +19,9 @@ class ScrapyClear(WebDriver):
 
     def __init__(self, *args, **kwargs):
         config_chrome = {}
-        # config_chrome['donwload_dir'] = settings.DOWNLOAD_DIR
-        # config_chrome['screenshot_dir'] = settings.SCREENSHOT_DIR
-        # config_chrome['never_ask_savetodisk'] = 'application/pdf,text/plain,application/octet-stream'
-        # config_chrome['screenshot_mask'] = '{0}/screenshot_{1}.png'
-        # config_chrome['screenshot_date_mask'] = '%Y-%m-%d__%H:%M:%S'
-        # config_chrome['command_executor_ip'] = 'localhost'
-        # config_chrome['command_executor_mask'] = 'http://{0}:4444/wd/hub'
         super().__init__(config= config_chrome)
 
     def openBroker(self):
-        # self.driver.manage().window().setSize(windowMinSize)
-        # self.driver.find_element_by_tag_name('body').send_keys(Keys.LEFT_CONTROL + Keys.COMMAND + 'f')
-        # actions = ActionChains(self.driver)
-        # actions.send_keys(Keys.LEFT_SHIFT + Keys.COMMAND + 'j')
-        # actions.perform()
-        # if len(self.driver.window_handles) > 1:
-        #   self.driver.switch_to_window(self.driver.window_handles[0])
-        # import ipdb; ipdb.set_trace()
         self.driver.get(os.environ.get('URL_BROKER'))
 
     def getClass(self, seletorClass, click=None):
@@ -268,7 +241,7 @@ class ScrapyClear(WebDriver):
             self.cancelOrders(stock=stock)
             self.setOrder(stock= stock)
             stock["recipe"] = self.getRecipe()
-            # saveFirebase(stock= stock)
+            saveFirebase(stock= stock)
             print('Send stop => %s quant => %s in price => %s' %(stock.get('operation'), stock.get('quantity'), price_stop))
             print("------------------------------------------------------------------------------------------------")
 

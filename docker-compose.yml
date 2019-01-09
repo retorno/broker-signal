@@ -1,17 +1,10 @@
   scrapy_broker:
     restart: always
-    build: ./scrapy
-    # volumes:
-    # - ${PROJECT_BROKER}:/opt/app
+    build: .
     ports:
     - "5018:5018"
-    env_file:
-    - ./docker-base.env
-    # depends_on:
     links:
     - selenium-hub:hub
-    # - selenium-hub
-    # - chrome
     environment:
     - URL_BROKER=${URL_BROKER}
     - HOST_BROKER=${HOST_BROKER}
@@ -23,37 +16,18 @@
     - 5018
 
   chrome:
-    # image: selenium/node-chrome
-    # image: selenium/node-chrome:3.9.1
     image: selenium/node-chrome:3.8.1
     links:
     - selenium-hub:hub
-    # # ports:
-    # # - "4000:80"
-    # volumes:
-    # - /dev/shm:/dev/shm # Mitigates the Chromium issue described at https://code.google.com/p/chromium/issues/detail?id=519952
-    # - ./scrapy/data:/home/seluser/Downloads
-    # - ${PROJECT_BROKER}:/opt/app
-    # environment:
-    # - HUB_PORT_4444_TCP_ADDR=selenium-hub  # erro aparente
-    # shm_size: 1536m
-    # depends_on:
-    #   - selenium-hub
     expose:
     - 4000
 
   selenium-hub:
-    # image: elgalu/selenium
-    # image: selenium/hub:3.9.1
     image: selenium/hub:3.8.1
     ports:
     - 4444:4444
-    # volumes:
-    # - ${PROJECT_BROKER}:/opt/app
     environment:
     - GRID_MAX_SESSION=10
     - GRID_BROWSER_TIMEOUT=100000
     - GRID_TIMEOUT=90000
     - GRID_NEW_SESSION_WAIT_TIMEOUT=20
-    # expose:
-    # - 4444
