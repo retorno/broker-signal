@@ -19,6 +19,7 @@ var/
 env.bat
 .idea/
 venv/
+*.log
 
 docker-base.env
 

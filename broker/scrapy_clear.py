@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from webselenium import WebDriver
+from utils.webselenium import WebDriver
 from utils.stock_firebase import saveFirebase
-from broker.scrapy_clear import OperationEnum, TypeOrderEnum
+from broker.broker_roles import OperationEnum, TypeOrderEnum
 import os
 import time
 import re
