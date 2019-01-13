@@ -56,7 +56,7 @@ class ScrapyClear(BrokerRoles, WebDriver):
         tab_orders_fast.click()
         quantity = stock.get('quantity')
         self.execute_script("document.getElementsByClassName('ng-valid-min')[4].value = %s" %quantity)
-        self.assignOperation( stock= stock, type_order= TypeOrderEnum.AGRESSION.value )
+        self.assignOperation( type_order= TypeOrderEnum.AGRESSION.value )
         if bool(int(stock.get('production'))):
             operation = stock.get('operation')
             if operation == OperationEnum.COMPRA.value:
@@ -70,26 +70,25 @@ class ScrapyClear(BrokerRoles, WebDriver):
             self.element(CLASS(btnClass)).click()
         else:
             stock.get('status').append('running in test')
-        self.priceLastOrder = 0
+        self.priceLastOrder = float(stock.get("last_price"))
         self.priceLastStop = 0
         return str(stock)
 
-    def zeraAll(self, stock={}):
-        self.cancelOrders(stock= stock)
+    def zeraAll(self):
+        self.cancelOrders()
         self.execute_script("document.getElementsByClassName('bt_action')[1].click()")
-        self.assignOperation(type_order= TypeOrderEnum.ZERAR.value)
-        self.exeCancelOrder(stock=stock)
+        self.assignOperation( type_order= TypeOrderEnum.ZERAR.value )
+        self.exeCancelOrder()
         self.priceLastOrder = 0
         self.priceLastStop = 0
-        return str(stock)
 
-    def cancelOrders(self, stock={}):
+    def cancelOrders(self):
         btn_order = self.element(CLASS('bt_action'))
         btn_order.click()
-        self.assignOperation(stock= stock, type_order= TypeOrderEnum.CANCELAR.value)
-        self.exeCancelOrder(stock= stock)
+        self.assignOperation( type_order= TypeOrderEnum.CANCELAR.value )
+        self.exeCancelOrder()
 
-    def exeCancelOrder(self, stock={}):
+    def exeCancelOrder(self):
         btn_execute = 'bt_comprar'
         btn_cancel = 'bt_fechar'
         self.execute_script('document.getElementsByClassName("%s")[2].click()' %btn_execute)
@@ -130,9 +129,8 @@ class ScrapyClear(BrokerRoles, WebDriver):
         price_stop = self.getPriceStop(stock= stock)
         stock['price_stop'] = price_stop
         stock['type_operation'] = TypeOrderEnum.STOP.value
-        self.cancelOrders(stock=stock)
+        self.cancelOrders()
         self.setOrder(stock= stock)
-        stock["recipe"] = self.getRecipe()
         print('Send stop => %s quant => %s in price => %s' %(stock.get('operation'), stock.get('quantity'), price_stop))
         print("------------------------------------------------------------------------------------------------")
 
@@ -148,7 +146,7 @@ class ScrapyClear(BrokerRoles, WebDriver):
         comboTipo = self.find_element_by_xpath("//select[@id='msg_exchangeordertype']/option[text()= '%s']" %typeOperation)
         comboTipo.click()
         self.setFormOrder(stock= stock)
-        self.assignOperation( stock= stock, type_order= TypeOrderEnum.LIMITED.value )
+        self.assignOperation( type_order= TypeOrderEnum.LIMITED.value )
         if bool(int(stock.get('production'))):
             self.element(CLASS('bt_comprar')).click()
         self.sayExecute(stock= stock)
@@ -161,7 +159,7 @@ class ScrapyClear(BrokerRoles, WebDriver):
         edtStop.clear()
         edtStop.send_keys( stock.get('price_stop') )
 
-    def assignOperation(self, stock={}, type_order=None):
+    def assignOperation(self, type_order=None):
         operation = {TypeOrderEnum.LIMITED.value: '0',
                      TypeOrderEnum.AGRESSION.value: '1',
                      TypeOrderEnum.ZERAR.value: '4',

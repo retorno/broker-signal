@@ -8,14 +8,13 @@ class Firebase():
     env = None
 
     def __init__(self):
-        if self.env.get("USE_FIREBASE"):
-            config = {"apiKey": os.environ.get('API_KEY_FIREBASE'),
-                    "authDomain": os.environ.get('AUTH_DOMAIN_FIREBASE'),
-                    "databaseURL": os.environ.get('DATA_BASE_URL_FIREBASE'),
-                    "storageBucket": os.environ.get('STORAGE_BUCKET_FIREBASE')
-            }
-            firebase = pyrebase.initialize_app(config)
-            self.db = firebase.database()
+        config = {"apiKey": os.environ.get('API_KEY_FIREBASE'),
+                "authDomain": os.environ.get('AUTH_DOMAIN_FIREBASE'),
+                "databaseURL": os.environ.get('DATA_BASE_URL_FIREBASE'),
+                "storageBucket": os.environ.get('STORAGE_BUCKET_FIREBASE')
+        }
+        firebase = pyrebase.initialize_app(config)
+        self.db = firebase.database()
 
     def saveFirebase(self, stock= {}):
         day = datetime.today().strftime('%Y%m%d')

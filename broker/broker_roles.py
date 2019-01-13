@@ -30,9 +30,8 @@ class BrokerRoles(Logger):
 
     def __init__(self, *args, **kwargs):
         Config.__init__(self)
-        self.env = self.conf.get("enviroment")
-        self.firebase = Firebase.__init__(self)
         Logger.__init__(self)
+        self.env = self.conf.get("enviroment")
 
     async def fake_network_request(self, request):
         print('making network call for request:  ' + request)
@@ -53,7 +52,7 @@ class BrokerRoles(Logger):
         point_to_double = 0
         send_operation = stock.get('operation')
         pt_double = float(stock.get('point_to_double'))
-        last_price = float(self.getLastPrice())
+        last_price = float(stock.get("last_price"))
         if self.priceLastOrder == 0:
             self.priceLastOrder = last_price
         if send_operation == OperationEnum.COMPRA.value:  
@@ -75,16 +74,19 @@ class BrokerRoles(Logger):
     def zeraAll(self):
         pass
 
-    def setStop(self, stock={}):
+    def getRecipe(self):
+        pass
+
+    def getPosition(self):
         pass
 
     def getMaxPosition(self):
         pass
 
-    def setOrderFast(self, stock={}):
+    def setStop(self, stock={}):
         pass
 
-    def getPosition(self):
+    def setOrderFast(self, stock={}):
         pass
 
     def hasOrdersOpen(self, stock={}):
@@ -101,13 +103,16 @@ class BrokerRoles(Logger):
     def checkStop(self, stock={}):
         count = 0
         while count < self.tryGet:
-            currentPosition = abs(self.getPosition())
-            stock["quantity"] = currentPosition
+            currentPosition = abs(int(self.getPosition()))
+            stock["quantity"] = str(currentPosition)
             stock["last_price"] = self.getLastPrice()
             if not self.hasOrdersOpen(stock=stock) and self.canAdjustPriceStop(stock=stock):
+                if not currentPosition:
+                    return
                 self.setStop(stock=stock)
-            elif int(currentPosition) or self.skipStop(stock=stock):
+            elif currentPosition and self.skipStop(stock=stock):
                 self.zeraAll()
+                return
             count += 1
         self.zeraAll()
 
@@ -146,26 +151,30 @@ class BrokerRoles(Logger):
                 stopLoss = lastPrice + stopLoss
         return str(int(stopLoss))
 
+    def saveFirebase(self, stock={}):
+        if os.environ.get("USE_FIREBASE"):
+            if not self.firebase:
+                self.firebase = Firebase()
+            stock["recipe"] = self.getRecipe()
+            self.firebase.saveFirebase(stock=stock)
+
     def changeStop(self, stock={}):
         print("init => " + str(stock))
         changePosition = int(stock.get('change_position'))
-        position = abs(int(self.getPosition()))
-        stock['status'] = []
-        if position == 0 or self.canDouble(stock=stock):
-            if changePosition == 1 and position != 0:
-                stock["quantity"] = str(position)
+        positionCurrent = abs(int(self.getPosition()))
+        stock["last_price"] = self.getLastPrice()
+        if not positionCurrent or self.canDouble(stock=stock):
+            if changePosition and positionCurrent:
+                stock["quantity"] = str(positionCurrent)
             if self.limitPosition(stock=stock):
                 self.setOrderFast(stock=stock)
-                self.firebase.saveFirebase(stock=stock)
-            else:
-                self.zeraAll(stock=stock)
-                stock.get('status').append('Not possible send order, is limit position')
+                self.saveFirebase(stock=stock)
         self.checkStop(stock=stock)
         print("final => " + str(stock))
         return json.dumps(stock)
     
     def sayExecute(self, stock={}):
-        if os.name != 'posix':  # only in win speech operation
+        if os.name == 'posix':  # only in win speech operation
             os.system('say %s %s' %(stock.get('operation'), stock.get('quantity')))
         else:
             import winspeech

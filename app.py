@@ -26,7 +26,8 @@ def getHeaders(request):
              'production': request.headers['production'],
              'change_position': request.headers['change_position'],
              'calculate_stop': request.headers['calculate_stop'],
-             'point_to_double': request.headers['point_to_double']}
+             'point_to_double': request.headers['point_to_double'],
+             'status': []}
     return stock
 
 
