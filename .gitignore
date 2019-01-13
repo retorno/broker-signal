@@ -1,10 +1,7 @@
 # Distribution / packaging
 .Python
-env/
 build/
-develop-eggs/
 dist/
-downloads/
 eggs/
 .eggs/
 lib/
@@ -16,14 +13,12 @@ var/
 .installed.cfg
 *.egg
 *.pyc
-env.bat
 .idea/
-venv/
+/tmp
+/logs
 *.log
-
-docker-base.env
+/metastore_db
 
 # Serverless directories
 .serverless
-
 __pycache__/

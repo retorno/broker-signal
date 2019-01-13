@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 import os, time, json
 from flask import Flask, request, Response
 from broker.scrapy_clear import ScrapyClear
-
+from broker.scrapy_clear import BrokerRoles
 
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -32,7 +32,7 @@ def getHeaders(request):
 
 @app.route('/broker/position', methods=['GET'])
 def getPosition():
-    position = clear.getTruePosition()
+    position = clear.getPosition()
     return str(position)
 
 
@@ -78,6 +78,9 @@ def cancelOrder():
 @app.route('/broker/change-stop', methods=['POST'])
 def changeStop():
     stock = getHeaders(request)
+    # loop = asyncio.get_event_loop()
+    # loop.run_until_complete(asyncio.ensure_future(web_server_handler(self)))
+    # loop.run_until_complete(asyncio.gather(coroutine_1(), coroutine_2()))
     order = clear.changeStop(stock=stock)
     return order
 

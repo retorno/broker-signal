@@ -1,5 +1,6 @@
 FROM python:3.6
 
+RUN mkdir -p /logs
 RUN mkdir -p /app
 WORKDIR /app
 ENV TZ 'America/Sao_Paulo'

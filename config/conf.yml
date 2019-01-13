@@ -1,4 +1,3 @@
 enviroment:
-  RUN_DOCKER: True
+  RUN_DOCKER: False
   SELENIUM_HUB: http://172.17.0.2:4444/wd/hub
-  USE_FIREBASE: False

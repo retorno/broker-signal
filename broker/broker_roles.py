@@ -3,6 +3,7 @@ from enum import Enum
 import os, time, json
 from utils import Config, Logger, Firebase
 from utils import WebDriver
+import asyncio
 
 
 class OperationEnum(Enum):
@@ -20,43 +21,32 @@ class TypeOrderEnum(Enum):
     ZERAR = 'Zerar'
 
 
-class BrokerRoles(WebDriver, Logger):
-
+class BrokerRoles(Logger):
     tryGet = 13
     priceLastOrder = 0    # verify canDouble
     priceLastStop = 0     # virify canAdjustPriceStop
     env = None
+    firebase = None
 
     def __init__(self, *args, **kwargs):
         Config.__init__(self)
         self.env = self.conf.get("enviroment")
-        Firebase.__init__(self)
+        self.firebase = Firebase.__init__(self)
         Logger.__init__(self)
-        super().__init__()
 
-    def getClass(self, seletorClass, click=None):
-        count = 0
-        while count < self.tryGet:
-            try:
-                _class = self.driver.find_element_by_class_name(seletorClass)
-                if _class:
-                    if click: _class.click()
-                    return _class
-            except:
-                count += 1
-                # pass
+    async def fake_network_request(self, request):
+        print('making network call for request:  ' + request)
+        await asyncio.sleep(5)
+        return 'got network response for request: ' + request
 
-    def getId(self, seletorId, click=None):
-        count = 0
-        while count < self.tryGet:
-            try:
-                _id = self.driver.find_element_by_id(seletorId)
-                if _id:
-                    if click: _id.click()
-                    return _id
-            except:
-                count += 1
-                # pass
+    async def web_server_handler(self):
+        task1 = asyncio.ensure_future(self.fake_network_request('one'))
+        task2 = asyncio.get_event_loop().create_task(self.fake_network_request('two'))
+        await asyncio.sleep(0.5)
+        print('doing useful work while network calls are in progress...')
+        await asyncio.wait([task1, task2])
+        print(task1.result())
+        print(task2.result())
 
     def canDouble(self, stock= {}):
         can_double = False
@@ -76,7 +66,52 @@ class BrokerRoles(WebDriver, Logger):
         print("price_last_order => " + str(float(self.priceLastOrder)) + " to double => " + str(point_to_double))
         return can_double
 
-    def canAdjustPriceStop(self, stock= {}):
+    def getLastPrice(self):
+        pass
+
+    def ordersOpen(self):
+        pass
+
+    def zeraAll(self):
+        pass
+
+    def setStop(self, stock={}):
+        pass
+
+    def getMaxPosition(self):
+        pass
+
+    def setOrderFast(self, stock={}):
+        pass
+
+    def getPosition(self):
+        pass
+
+    def hasOrdersOpen(self, stock={}):
+        orders_open = self.ordersOpen()
+        print("orders_open => " + str(orders_open))
+        qtd_open = orders_open.get("qtd_open")
+        qtd_buy = orders_open.get("qtd_buy")
+        qtd_sell = orders_open.get("qtd_sell")
+        if qtd_open == (qtd_buy + qtd_sell) == stock.get("quantity"):
+            return True
+        else:
+            return False
+
+    def checkStop(self, stock={}):
+        count = 0
+        while count < self.tryGet:
+            currentPosition = abs(self.getPosition())
+            stock["quantity"] = currentPosition
+            stock["last_price"] = self.getLastPrice()
+            if not self.hasOrdersOpen(stock=stock) and self.canAdjustPriceStop(stock=stock):
+                self.setStop(stock=stock)
+            elif int(currentPosition) or self.skipStop(stock=stock):
+                self.zeraAll()
+            count += 1
+        self.zeraAll()
+
+    def canAdjustPriceStop(self, stock={}):
         sendOperation = stock.get('operation')
         price_stop = float(self.getPriceStop(stock=stock))
         if self.priceLastStop == 0:
@@ -89,7 +124,7 @@ class BrokerRoles(WebDriver, Logger):
             return True
         return False
 
-    def skipStop(self, stock= {}):
+    def skipStop(self, stock={}):
         lastPrice = float(stock.get("last_price"))
         sendOperation = stock.get('operation')
         if sendOperation == OperationEnum.COMPRA.value and lastPrice <= self.priceLastStop:
@@ -98,64 +133,34 @@ class BrokerRoles(WebDriver, Logger):
             return True
         return False
 
-    def funcname(self, parameter_list):
-        saveFirebase(stock= stock)
-        pass
-
-    def hasOrdersOpen(self):
-        orders_open = self.ordersOpen()
-        print("orders_open => " + str(orders_open))
-        qtd_open = orders_open.get("qtd_open")
-        qtd_buy = orders_open.get("qtd_buy")
-        qtd_sell = orders_open.get("qtd_sell")
-        currentPosition = abs(int(self.getPosition()))
-        stock["quantity"] = str(currentPosition)
-        stock["last_price"] = self.getLastPrice()
-        if qtd_open == currentPosition and (qtd_buy + qtd_sell) == currentPosition and self.canAdjustPriceStop(stock=stock):
-            self.setStop(stock=stock)
-            return True
-        elif qtd_open == 0:
-            self.setStop(stock=stock)
-        elif currentPosition == 0 or self.skipStop(stock=stock):
-            self.zeraAll()
-            return False
-
-    def checkStop(self, stock={}):
-        count = 0
-        while count < self.tryGet:
-            orders_open = self.ordersOpen()
-            print("orders_open => " + str(orders_open))
-            qtd_open = orders_open.get("qtd_open")
-            qtd_buy = orders_open.get("qtd_buy")
-            qtd_sell = orders_open.get("qtd_sell")
-            currentPosition = abs(int(self.getPosition()))
-            stock["quantity"] = str(currentPosition)
-            stock["last_price"] = self.getLastPrice()
-            if qtd_open == currentPosition and (qtd_buy + qtd_sell) == currentPosition and self.canAdjustPriceStop(stock=stock):
-                self.setStop(stock=stock)
-                return True
-            elif qtd_open == 0:
-                self.setStop(stock=stock)
-            elif currentPosition == 0 or self.skipStop(stock=stock):
-                self.zeraAll()
-                return False
-            count += 1
-        self.zeraAll()
+    def getPriceStop(self, stock= {}):
+        #calculate_stop (0 = False, 1 = True)
+        lastPrice = float(stock.get("last_price"))
+        stopLoss = float(stock.get('stop_loss'))
+        sendOperation = stock.get('operation')
+        calc_stop = int(stock.get('calculate_stop'))
+        if calc_stop == 1:
+            if sendOperation == OperationEnum.COMPRA.value:
+                stopLoss = lastPrice - stopLoss
+            if sendOperation == OperationEnum.VENDA.value:
+                stopLoss = lastPrice + stopLoss
+        return str(int(stopLoss))
 
     def changeStop(self, stock={}):
         print("init => " + str(stock))
         changePosition = int(stock.get('change_position'))
         position = abs(int(self.getPosition()))
         stock['status'] = []
-        if position == 0 or clear.canDouble(stock=stock):
+        if position == 0 or self.canDouble(stock=stock):
             if changePosition == 1 and position != 0:
                 stock["quantity"] = str(position)
-            if clear.limitPosition(stock=stock):
-                clear.setOrderFast(stock=stock)
+            if self.limitPosition(stock=stock):
+                self.setOrderFast(stock=stock)
+                self.firebase.saveFirebase(stock=stock)
             else:
-                clear.zeraAll(stock=stock)
+                self.zeraAll(stock=stock)
                 stock.get('status').append('Not possible send order, is limit position')
-        clear.checkStop(stock=stock)
+        self.checkStop(stock=stock)
         print("final => " + str(stock))
         return json.dumps(stock)
     

@@ -5,6 +5,8 @@
     - "5018:5018"
     links:
     - selenium-hub:hub
+    volumes:
+    - ./logs:/opt/logs
     environment:
     - URL_BROKER=${URL_BROKER}
     - HOST_BROKER=${HOST_BROKER}
@@ -12,6 +14,7 @@
     - BROKER_PASSWORD=${BROKER_PASSWORD}
     - BROKER_DT_NASC=${BROKER_DT_NASC}
     - BROKER_SIGNATURE=${BROKER_SIGNATURE}
+    - USE_FIREBASE=${USE_FIREBASE}
     - API_KEY_FIREBASE=${API_KEY_FIREBASE}
     - AUTH_DOMAIN_FIREBASE=${AUTH_DOMAIN_FIREBASE}
     - DATA_BASE_URL_FIREBASE=${DATA_BASE_URL_FIREBASE}
