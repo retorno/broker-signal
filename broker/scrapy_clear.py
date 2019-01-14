@@ -34,24 +34,25 @@ class ScrapyClear(WebDriver):
         self.driver.get(os.environ.get('URL_BROKER'))
 
     def setLogin(self, username=None):
+        print ("AKKKKKKKKKKKKKKK")
         broker_cpf_cnpj = os.environ.get('BROKER_CPF_CNPJ')
         broker_password = os.environ.get('BROKER_PASSWORD')
         broker_dt_nasc = os.environ.get('BROKER_DT_NASC')
-        cpf_cnpj = self.element(ID('identificationNumber'))
+        cpf_cnpj = self.driver.element(ID('identificationNumber'))
         cpf_cnpj.clear()
         cpf_cnpj.send_keys(broker_cpf_cnpj)
-        password = self.element(ID('password'))
+        password = self.driver.element(ID('password'))
         password.clear()
         password.send_keys(broker_password)
-        dt_nasc = self.element(CLASS('input_date'))
+        dt_nasc = self.driver.element(CLASS('input_date'))
         dt_nasc.clear()
         dt_nasc.send_keys(broker_dt_nasc)
-        self.element(CLASS('bt_signin')).click()
-        self.element(CLASS('right')).click()
+        self.driver.element(CLASS('bt_signin')).click()
+        self.driver.element(CLASS('right')).click()
         self.openBroker()
 
     def getLastPrice(self):
-        lastPrice = self.element(CLASS('lastPrice'))
+        lastPrice = self.driver.element(CLASS('lastPrice'))
         if lastPrice:
             lastPrice = lastPrice.text.replace(',','.')
             return lastPrice
@@ -59,7 +60,7 @@ class ScrapyClear(WebDriver):
             return '0'
 
     def setOrderFast(self, stock={}):
-        tab_orders_fast = self.element(CLASS('bt_fast_boleta'))
+        tab_orders_fast = self.driver.element(CLASS('bt_fast_boleta'))
         tab_orders_fast.click()
         quantity = stock['quantity']
         self.execute_script("document.getElementsByClassName('ng-valid-min')[4].value = %s" %quantity)
@@ -74,7 +75,7 @@ class ScrapyClear(WebDriver):
                 btnClass = 'bt_fast_rollback'
             elif operation == OperationEnum.INVERT.value:
                 btnClass = 'bt_fast_flip'
-            self.element(CLASS(btnClass)).click()
+                self.driver.element(CLASS(btnClass)).click()
         else:
             print('running in test')
         return "Ok"
@@ -92,8 +93,8 @@ class ScrapyClear(WebDriver):
         self.execute_script('document.getElementsByClassName("%s")[2].click()' %btn_cancel)
 
     def updatePosition(self):
-        self.element(CLASS("bt_red_boleta")).click()
-        self.element(CLASS("bt_blue_boleta")).click()
+        self.driver.element(CLASS("bt_red_boleta")).click()
+        self.driver.element(CLASS("bt_blue_boleta")).click()
 
     def getPosition(self):
         self.updatePosition()
