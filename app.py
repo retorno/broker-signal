@@ -40,13 +40,6 @@ def setOrder():
     return "OK"
 
 
-@app.route('/broker/set-order-fast', methods=['POST'])
-def setOrder():
-    stock = getHeaders(request)
-    order = clear.setOrderFast(stock=stock)
-    return order
-
-
 def connectBroker():
     global clear
     clear = ScrapyClear()
