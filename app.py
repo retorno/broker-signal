@@ -1,10 +1,19 @@
-from flask import Flask, request
-from flask_restful import Api
+from flask import Flask, request, session, redirect, url_for, escape, request
+from flask_restful import reqparse, abort, Api, Resource
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.support.ui import WebDriverWait
+import os, time, json
+from flask import Flask, request, Response
 from broker.scrapy_clear import ScrapyClear
+from broker.scrapy_clear import BrokerRoles
 
 app = Flask(__name__)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 api = Api(app)
 clear = None
+debug = False
 
 # production: 1 = True / 0 = False
 # quantity:2
@@ -25,12 +34,8 @@ def getLastPrice():
 
 @app.route('/broker/zerar-all', methods=['GET'])
 def zeraAll():
-    return clear.zeraAll()
-
-
-@app.route('/broker/cancel-all', methods=['GET'])
-def cancelAll():
-    return clear.cancelOrders()
+    zerar = clear.zeraAll()
+    return zerar
 
 
 @app.route('/broker/set-order', methods=['POST'])
