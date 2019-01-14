@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
-from webselenium import WebDriver
-from envi import config
+from utils.WebDriver import WebDriver
 
 
 class OperationEnum:
