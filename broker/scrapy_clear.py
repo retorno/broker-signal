@@ -6,6 +6,7 @@ import os
 import time
 import re
 from enum import Enum
+from utils import Config
 
 
 class OperationEnum(Enum):
@@ -27,6 +28,7 @@ class TypeOrderEnum(Enum):
 class ScrapyClear(WebDriver):
 
     def __init__(self):
+        Config.__init__(self)
         config_chrome = self.conf.get("enviroment")
         super().__init__(config= config_chrome)
 
