@@ -5,6 +5,7 @@ from utils.WebDriver import WebDriver
 import os
 import time
 import re
+from enum import Enum
 
 
 class OperationEnum(Enum):
