@@ -2,10 +2,4 @@ flask
 flask_restful
 flask-Cors #==3.0.2
 selenium #==3.10.0
-pyrebase
-pyyaml
-logger
-
-#develop
-# ipdb
-# pyspark
+ipdb

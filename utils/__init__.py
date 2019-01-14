@@ -4,4 +4,4 @@ from .Firebase import Firebase
 from .WebDriver import WebDriver
 
 
-__all__ = ['Config', 'Logger', 'Firebase', 'WebDriver']
+__all__ = ['Config', 'WebDriver']
