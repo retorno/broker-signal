@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium import webdriver
 
 from selenium.webdriver.common.keys import Keys
 import selenium.webdriver.chrome.service as service
@@ -61,18 +60,19 @@ class WebDriver(webdriver.Chrome):
             time.sleep(2)
             #print("###### => " + str(config))
             #docker_host= config.get("SELENIUM_HUB")
-            self.driver = webdriver.Remote(command_executor="http://172.18.0.2:4444/wd/hub", desired_capabilities=DesiredCapabilities.CHROME)
-            self.wait = WebDriverWait(self.driver, 1)
+            self.driver = webdriver.Remote(command_executor="http://172.17.0.2:4444/wd/hub", desired_capabilities=DesiredCapabilities.CHROME)
+            self.wait = WebDriverWait(self.driver, 5)
             self.driver.set_page_load_timeout(9999)
             self.driver.implicitly_wait(3)
         else:
             options = webdriver.ChromeOptions()
             options.add_argument('--incognito')
             options.add_argument('--start-maximized')
-            chromium_path = os.environ.get('DIR_LOCAL_DRIVER')
-            download_dir = os.environ.get('DIR_LOCAL_DATA')        
-            preferences = {"download.default_directory": download_dir}
-            options.add_experimental_option("prefs", preferences)
+            # chromium_path = os.environ.get('DIR_LOCAL_DRIVER')
+            chromium_path= "C:\\Users\\Luiz\\Documents\\chromedriver\\chromedriver.exe"
+            # download_dir = os.environ.get('DIR_LOCAL_DATA')        
+            # preferences = {"download.default_directory": download_dir}
+            # options.add_experimental_option("prefs", preferences)
             self.driver = super().__init__(executable_path= chromium_path, chrome_options=options)
             self.wait = WebDriverWait(self.driver, 1)
         

@@ -25,16 +25,18 @@ class TypeOrderEnum(Enum):
 
 
 
-class ScrapyClear(WebDriver):
+class ScrapyClear():
 
     def __init__(self):
-        super().__init__()
+        # super().__init__()
+        self.driver = WebDriver()
 
     def openBroker(self):
         self.driver.get(os.environ.get('URL_BROKER'))
 
     def setLogin(self, username=None):
         print ("AKKKKKKKKKKKKKKK")
+        # import ipdb; ipdb.set_trace()
         broker_cpf_cnpj = os.environ.get('BROKER_CPF_CNPJ')
         broker_password = os.environ.get('BROKER_PASSWORD')
         broker_dt_nasc = os.environ.get('BROKER_DT_NASC')
