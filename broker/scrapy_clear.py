@@ -28,8 +28,10 @@ class ScrapyClear(WebDriver):
     def __init__(self):
         super(ScrapyClear, self).__init__()
 
+
     def openBroker(self):
         self.driver.get(config["URL_BROKER"])
+
 
     def getClass(self, seletorclass, click=None):
         count = 0
@@ -43,6 +45,7 @@ class ScrapyClear(WebDriver):
             except:
                 count += 1
 
+
     def getId(self, seletorid, click=None):
         count = 0
         while count < 15:
@@ -54,6 +57,7 @@ class ScrapyClear(WebDriver):
                     return _id
             except:
                 count += 1
+
 
     def setLogin(self, username=None):
         broker_cpf_cnpj = os.environ.get('BROKER_CPF_CNPJ')
@@ -72,6 +76,7 @@ class ScrapyClear(WebDriver):
         self.getClass('right', click=True)
         self.openBroker()
 
+
     def getLastPrice(self):
         lastPrice = self.getClass('lastPrice')
         if lastPrice:
@@ -80,11 +85,13 @@ class ScrapyClear(WebDriver):
         else:
             return '0'
 
+
     def zeraAll(self):
         self.driver.execute_script("document.getElementsByClassName('bt_action')[1].click()")
         self.assignOperation(type_order=TypeOrderEnum.ZERAR)
         self.exeCancelOrder()
         return "OK"
+
 
     def cancelOrders(self):
         self.getClass('bt_action', click=True)  # btn_order
@@ -92,9 +99,11 @@ class ScrapyClear(WebDriver):
         self.exeCancelOrder()
         return "OK"
 
+
     def openPanelOrderFast(self):
         self.getClass('bt_orders_boleta', click=True)  # tab_ordens
         self.getClass('bt_open_orders_f', click=True)  # btn_orders_fast
+
 
     def exeCancelOrder(self):
         count = 0
@@ -106,9 +115,11 @@ class ScrapyClear(WebDriver):
             except:
                 count += 1
 
+
     def getPosition(self):
         position = self.driver.execute_script('return document.getElementsByClassName("input_gray")[3].value')
         return str(position)
+
 
     def setFormOrder(self, stock):
         edtQuantity = self.getId('msg_quantity')
@@ -118,20 +129,27 @@ class ScrapyClear(WebDriver):
         edtValue.clear()
         edtValue.send_keys(stock["value"])
 
-    def setOrder(self, stock):
-        sendOperation = stock["operation"]
-        if sendOperation == OperationEnum.COMPRA:
-            btnClass = 'bt_blue_boleta'
-        else:  # sendOperation == OperationEnum.VENDA:
-            btnClass = 'bt_red_boleta'
-        self.getClass(btnClass, click=True)  # tab_buy_sell
-        typeOperation = stock["type_operation"]  # ['Limitada', 'Stop']
-        comboTipo = self.driver.find_element_by_xpath(
-            "//select[@id='msg_exchangeordertype']/option[text()= '%s']" % typeOperation)
-        comboTipo.click()
-        self.setFormOrder(stock=stock)
-        self.assignOperation(type_order=TypeOrderEnum.LIMITED)
-        self.getClass('bt_comprar', click=True)
+
+    def setOrderFast(self, stock):
+        tab_orders_fast = self.element(CLASS('bt_fast_boleta'))
+        tab_orders_fast.click()
+        quantity = stock['quantity']
+        self.execute_script("document.getElementsByClassName('ng-valid-min')[4].value = %s" % quantity)
+        self.assignOperation(type_order=TypeOrderEnum.AGRESSION.value)
+        if bool(int(stock['production'])):
+            operation = stock['operation']
+            if operation == OperationEnum.COMPRA.value:
+                btnClass = 'bt_fast_buy'
+            elif operation == OperationEnum.VENDA.value:
+                btnClass = 'bt_fast_sell'
+            elif operation == OperationEnum.ZERAR.value:
+                btnClass = 'bt_fast_rollback'
+            elif operation == OperationEnum.INVERT.value:
+                btnClass = 'bt_fast_flip'
+            self.element(CLASS(btnClass)).click()
+        else:
+            print('running in test')
+
 
     def assignOperation(self, type_order=None):
         operation = {TypeOrderEnum.LIMITED: '0',
@@ -141,6 +159,7 @@ class ScrapyClear(WebDriver):
         keyOper = operation.get(type_order)
         sign = config["BROKER_SIGNATURE"]
         self.driver.execute_script('document.getElementsByClassName("input_key")[%s].value = "%s"' % (keyOper, sign))
+
 
     def closeModal(self):
         try:

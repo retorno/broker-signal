@@ -36,8 +36,15 @@ def cancelAll():
 
 @app.route('/broker/set-order', methods=['POST'])
 def setOrder():
-    clear.setOrder(stock=request.json)
+    clear.setOrderFast(stock=request.json)
     return "OK"
+
+
+@app.route('/broker/set-order-fast', methods=['POST'])
+def setOrder():
+    stock = getHeaders(request)
+    order = clear.setOrderFast(stock=stock)
+    return order
 
 
 def connectBroker():
