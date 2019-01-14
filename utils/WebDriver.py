@@ -59,7 +59,7 @@ class WebDriver(webdriver.Chrome):
 
         if True: #config.get("RUN_DOCKER"):
             time.sleep(2)
-            print("###### => " + str(config))
+            #print("###### => " + str(config))
             docker_host= config.get("SELENIUM_HUB")
             self.driver = webdriver.Remote(command_executor=docker_host, desired_capabilities=DesiredCapabilities.CHROME)
             self.wait = WebDriverWait(self.driver, 1)
