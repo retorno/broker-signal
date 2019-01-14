@@ -52,10 +52,11 @@ def js_href(el):
 class WebDriver(webdriver.Chrome):
     env = None
 
-    def __init__(self, *args, **kwargs):
-        if self.env.get("RUN_DOCKER"):
+    def __init__(self, config={}):
+        if config.get("RUN_DOCKER"):
             time.sleep(2)
-            docker_host= self.env.get("SELENIUM_HUB")
+            print("###### => " + str(config))
+            docker_host= config.get("SELENIUM_HUB")
             self.driver = webdriver.Remote(command_executor=docker_host, desired_capabilities=DesiredCapabilities.CHROME)
             self.wait = WebDriverWait(self.driver, 1)
             self.driver.set_page_load_timeout(9999)

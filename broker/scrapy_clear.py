@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 from broker.broker_roles import OperationEnum, TypeOrderEnum, BrokerRoles
 from utils.WebDriver import *
+from utils.WebDriver import WebDriver
 import os
 import time
 import re
@@ -9,12 +10,13 @@ import re
 
 class ScrapyClear(BrokerRoles, WebDriver):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         BrokerRoles.__init__(self)
-        WebDriver.__init__(self)
-        
+        config_chrome = self.conf.get("enviroment")
+        super().__init__(config= config_chrome)
+
     def openBroker(self):
-        self.get(os.environ.get('URL_BROKER'))
+        self.driver.get(os.environ.get('URL_BROKER'))
 
     def setLogin(self, username=None):
         broker_cpf_cnpj = os.environ.get('BROKER_CPF_CNPJ')
@@ -147,7 +149,7 @@ class ScrapyClear(BrokerRoles, WebDriver):
         comboTipo.click()
         self.setFormOrder(stock= stock)
         self.assignOperation( type_order= TypeOrderEnum.LIMITED.value )
-        if bool(int(stock.get('production'))):
+        if int(stock.get('production')):
             self.element(CLASS('bt_comprar')).click()
         self.sayExecute(stock= stock)
 

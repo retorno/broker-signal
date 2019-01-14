@@ -4,9 +4,8 @@ flask-Cors #==3.0.2
 selenium #==3.10.0
 pyrebase
 pyyaml
-pyspark
 logger
-requests
 
 #develop
-ipdb
+# ipdb
+# pyspark
