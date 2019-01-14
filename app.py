@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_restful import Api
-from scrapy_clear import ScrapyClear
+from broker.scrapy_clear import ScrapyClear
 
 app = Flask(__name__)
 api = Api(app)
