@@ -60,8 +60,8 @@ class WebDriver(webdriver.Chrome):
         if True: #config.get("RUN_DOCKER"):
             time.sleep(2)
             #print("###### => " + str(config))
-            docker_host= config.get("SELENIUM_HUB")
-            self.driver = webdriver.Remote(command_executor=docker_host, desired_capabilities=DesiredCapabilities.CHROME)
+            #docker_host= config.get("SELENIUM_HUB")
+            self.driver = webdriver.Remote(command_executor="http://172.18.0.2:4444/wd/hub", desired_capabilities=DesiredCapabilities.CHROME)
             self.wait = WebDriverWait(self.driver, 1)
             self.driver.set_page_load_timeout(9999)
             self.driver.implicitly_wait(3)
