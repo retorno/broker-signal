@@ -121,15 +121,6 @@ class ScrapyClear(WebDriver):
         return str(position)
 
 
-    def setFormOrder(self, stock):
-        edtQuantity = self.getId('msg_quantity')
-        edtQuantity.clear()
-        edtQuantity.send_keys(stock["quantity"])
-        edtValue = self.getId("msg_price")
-        edtValue.clear()
-        edtValue.send_keys(stock["value"])
-
-
     def setOrderFast(self, stock):
         tab_orders_fast = self.element(CLASS('bt_fast_boleta'))
         tab_orders_fast.click()

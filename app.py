@@ -6,10 +6,9 @@ app = Flask(__name__)
 api = Api(app)
 clear = None
 
+# production: 1 = True / 0 = False
 # quantity:2
-# value:79890
 # operation:Buy
-# type_operation:['Limitada', 'Stop']
 
 
 @app.route('/broker/position', methods=['GET'])
