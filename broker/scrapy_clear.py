@@ -28,9 +28,7 @@ class TypeOrderEnum(Enum):
 class ScrapyClear(WebDriver):
 
     def __init__(self):
-        Config.__init__(self)
-        config_chrome = self.conf.get("enviroment")
-        super().__init__(config_chrome)
+        super().__init__(self)
 
     def openBroker(self):
         self.driver.get(os.environ.get('URL_BROKER'))

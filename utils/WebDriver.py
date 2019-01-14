@@ -53,7 +53,11 @@ class WebDriver(webdriver.Chrome):
     env = None
 
     def __init__(self):
-        if config.get("RUN_DOCKER"):
+
+        #Config.__init__(self)
+        #config_chrome = self.conf.get("enviroment")
+
+        if True: #config.get("RUN_DOCKER"):
             time.sleep(2)
             print("###### => " + str(config))
             docker_host= config.get("SELENIUM_HUB")
