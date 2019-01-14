@@ -6,7 +6,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 import os, time, json
 from flask import Flask, request, Response
 from broker.scrapy_clear import ScrapyClear
-from broker.scrapy_clear import BrokerRoles
 
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
