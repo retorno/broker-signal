@@ -52,7 +52,7 @@ def js_href(el):
 class WebDriver(webdriver.Chrome):
     env = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         if config.get("RUN_DOCKER"):
             time.sleep(2)
             print("###### => " + str(config))
