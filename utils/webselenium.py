@@ -30,7 +30,8 @@ class WebDriver(object):
         # self.wait = WebDriverWait(self.driver, 1)
         
         time.sleep(2)
-        docker_host = "http://172.17.0.2:4444/wd/hub"
+        # docker_host = "http://172.17.0.2:4444/wd/hub"
+        docker_host = "http://172.18.0.2:4444/wd/hub"
         self.driver = webdriver.Remote(command_executor=docker_host, desired_capabilities=DesiredCapabilities.CHROME)
         self.wait = WebDriverWait(self.driver, 1)
         self.driver.set_page_load_timeout(9999)
