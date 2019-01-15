@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from utils.webselenium import WebDriver
-from utils.stock_firebase import saveFirebase
 from broker.broker_roles import OperationEnum, TypeOrderEnum
 import os
 import time
@@ -135,4 +134,3 @@ class ScrapyClear(WebDriver):
             self.getId('ipo_close', click=True) # btnClose
         except:
             pass
-        
