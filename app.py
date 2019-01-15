@@ -43,9 +43,13 @@ def connectBroker():
     global clear
     clear = ScrapyClear()
     clear.openBroker()
+    print (" -----> OPEN BROKER OK")
     clear.setLogin()
+    print (" -----> OPEN LOGIN OK")
     clear.closeModal()
+    print (" -----> CLOSE MODAL OK")
     clear.openPanelOrderFast()
+    print (" -----> OPEN PANEL ORDER FAST OK")
     return clear
 
 
