@@ -59,7 +59,10 @@ class ScrapyClear(WebDriver):
         dt_nasc.clear()
         dt_nasc.send_keys(broker_dt_nasc)
         self.getClass('bt_signin', click=True)
-        self.getClass('right', click=True)
+
+        rightclick = self.getClass('right')
+        rightclick.find_element_by_css_selector('a').click()
+
         self.openBroker()
 
     def getLastPrice(self):
