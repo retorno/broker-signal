@@ -1,3 +1,4 @@
 enviroment:
   RUN_CONTEINER: True
   SELENIUM_HUB: http://172.17.0.2:4444/wd/hub
+  PRODUCTION: True

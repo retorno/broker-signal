@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, request, session, redirect, url_for, escape, request
 from flask_restful import reqparse, abort, Api, Resource
 from selenium import webdriver

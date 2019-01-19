@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from broker.broker_roles import OperationEnum, TypeOrderEnum, BrokerRoles
+from __future__ import unicode_literalsm
 from utils.WebDriver import *
 from utils.WebDriver import WebDriver
-import os
-import time
-import re
+from model.broker_model import OperationEnum, TypeOrderEnum
+import os, time, re
 
 
-class ScrapyClear(BrokerRoles, WebDriver):
+class ScrapyClear(WebDriver):
 
     def __init__(self):
-        BrokerRoles.__init__(self)
         config_chrome = self.conf.get("enviroment")
         super().__init__(config= config_chrome)
 

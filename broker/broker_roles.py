@@ -1,24 +1,8 @@
 # -*- coding: utf-8 -*-
-from enum import Enum
-import os, time, json
 from utils import Config, Logger, Firebase
-from utils import WebDriver
+from model.broker_model import OperationEnum, TypeOrderEnum
+import os, time, json
 import asyncio
-
-
-class OperationEnum(Enum):
-    COMPRA = 'Buy'
-    VENDA = 'Sell'
-    ZERAR = 'Zerar'
-    INVERT = 'Invert'
-
-
-class TypeOrderEnum(Enum):
-    STOP = 'Stop'
-    LIMITED = 'Limited'
-    AGRESSION = 'Aggression'
-    CANCELAR = 'Cancelar'
-    ZERAR = 'Zerar'
 
 
 class BrokerRoles(Logger):
@@ -55,7 +39,7 @@ class BrokerRoles(Logger):
         last_price = float(stock.get("last_price"))
         if self.priceLastOrder == 0:
             self.priceLastOrder = last_price
-        if send_operation == OperationEnum.COMPRA.value:  
+        if send_operation == OperationEnum.COMPRA.value:
             point_to_double = float(self.priceLastOrder) + pt_double
             can_double = last_price > point_to_double
         elif send_operation == OperationEnum.VENDA.value:
