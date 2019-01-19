@@ -1,8 +1,26 @@
-  scrapy_broker:
+  broker_roles:
     restart: always
-    build: .
+    build: ./broker
     ports:
-    - "5018:5018"
+    - "5020:5020"
+    links:
+    - scrapy_clear
+    volumes:
+    - ./logs:/opt/logs
+    environment:
+    - USE_FIREBASE=${USE_FIREBASE}
+    - API_KEY_FIREBASE=${API_KEY_FIREBASE}
+    - AUTH_DOMAIN_FIREBASE=${AUTH_DOMAIN_FIREBASE}
+    - DATA_BASE_URL_FIREBASE=${DATA_BASE_URL_FIREBASE}
+    - STORAGE_BUCKET_FIREBASE=${STORAGE_BUCKET_FIREBASE}
+    expose:
+    - 5020
+
+  scrapy_clear:
+    restart: always
+    build: ./scrapy
+    ports:
+    - "5010:5010"
     links:
     - selenium-hub:hub
     volumes:
@@ -14,13 +32,8 @@
     - BROKER_PASSWORD=${BROKER_PASSWORD}
     - BROKER_DT_NASC=${BROKER_DT_NASC}
     - BROKER_SIGNATURE=${BROKER_SIGNATURE}
-    - USE_FIREBASE=${USE_FIREBASE}
-    - API_KEY_FIREBASE=${API_KEY_FIREBASE}
-    - AUTH_DOMAIN_FIREBASE=${AUTH_DOMAIN_FIREBASE}
-    - DATA_BASE_URL_FIREBASE=${DATA_BASE_URL_FIREBASE}
-    - STORAGE_BUCKET_FIREBASE=${STORAGE_BUCKET_FIREBASE}
     expose:
-    - 5018
+    - 5010
 
   chrome:
     image: selenium/node-chrome:3.8.1
