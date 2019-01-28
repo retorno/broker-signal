@@ -15,7 +15,7 @@ class Config(object):
 
     def __init__(self, conf_file=None):
         try:
-            project_conf_file = os.getcwd() + "/config/conf.yml"
+            project_conf_file = os.getcwd() + "/../config/conf.yml"
             if isfile(project_conf_file):
                 stream = open(project_conf_file, "r")
                 self.conf = yaml.load(stream)

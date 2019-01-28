@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
-from utils import Config, Logger, Firebase
-from model.broker_model import OperationEnum, TypeOrderEnum
-import os, time, json
-import asyncio
+import os, time, json, sys
+import asyncio, requests
+here = os.environ.get("PROJECT_BROKER")
+sys.path.append(here)
+from model.broker_model import OperationEnum, TypeOrderEnum, TypeMethod
+# from utils import Config, Logger, Firebase
 
 
-class BrokerRoles(Logger):
+class BrokerRoles: #(Logger):
     tryGet = 13
     priceLastOrder = 0    # verify canDouble
     priceLastStop = 0     # virify canAdjustPriceStop
     env = None
     firebase = None
 
-    def __init__(self, *args, **kwargs):
-        Config.__init__(self)
-        Logger.__init__(self)
-        self.env = self.conf.get("enviroment")
+    # def __init__(self, *args, **kwargs):
+        # Config.__init__(self)
+        # Logger.__init__(self)
+        # self.env = self.conf.get("enviroment")
 
     async def fake_network_request(self, request):
         print('making network call for request:  ' + request)
@@ -50,28 +52,62 @@ class BrokerRoles(Logger):
         return can_double
 
     def getLastPrice(self):
-        pass
+        endPoint = '/scrapy/last-price'
+        ret = self.request('get', endPoint)
+        return str(ret)
+
+    def cancelOrder(self):
+        endPoint = '/scrapy/cancel-order'
+        ret = self.request('get', endPoint)
+        return ret
 
     def ordersOpen(self):
-        pass
+        endPoint = '/scrapy/orders-open'
+        ret = self.request('get', endPoint)
+        return ret
 
     def zeraAll(self):
-        pass
+        endPoint = '/scrapy/zerar-all'
+        ret = self.request('get', endPoint)
+        return ret
 
     def getRecipe(self):
-        pass
+        endPoint = '/scrapy/recipe'
+        ret = self.request('get', endPoint)
+        return str(ret)
 
     def getPosition(self):
-        pass
+        endPoint = '/scrapy/position'
+        ret = self.request('get', endPoint)
+        return str(ret)
 
     def getMaxPosition(self):
-        pass
+        endPoint = '/scrapy/max-position'
+        ret = self.request('get', endPoint)
+        return str(ret)
+
+    def request(self, method, endPoint, data={}):
+        ret = None
+        srvScrapy = 'http://localhost:5011'
+        url = srvScrapy + endPoint
+        if method == TypeMethod.GET.value:
+            ret = requests.get(url)
+        elif method == TypeMethod.POST.value:
+            ret = requests.post(url, data)
+        if ret.status_code == 200:
+            return eval(ret.content)
 
     def setStop(self, stock={}):
-        pass
+        stock = self.getStock()
+        endPoint = '/scrapy/set-stop'     # methods=['POST'])
+        ret = self.request('post', endPoint, stock)
+        return ret
 
     def setOrderFast(self, stock={}):
-        pass
+        stock = self.getStock()
+        endPoint = '/scrapy/set-order'    # methods=['POST'])
+        ret = self.request('post', endPoint, stock)
+        return ret
 
     def hasOrdersOpen(self, stock={}):
         orders_open = self.ordersOpen()
@@ -113,6 +149,11 @@ class BrokerRoles(Logger):
             return True
         return False
 
+    def hasChangePosition(self):
+        stock = self.getStock()
+        changePosition = int(stock.get('change_position'))
+        return changePosition      
+
     def skipStop(self, stock={}):
         lastPrice = float(stock.get("last_price"))
         sendOperation = stock.get('operation')
@@ -143,12 +184,12 @@ class BrokerRoles(Logger):
             self.firebase.saveFirebase(stock=stock)
 
     def changeStop(self, stock={}):
+        stock = self.getStock()
         print("init => " + str(stock))
-        changePosition = int(stock.get('change_position'))
         positionCurrent = abs(int(self.getPosition()))
         stock["last_price"] = self.getLastPrice()
         if not positionCurrent or self.canDouble(stock=stock):
-            if changePosition and positionCurrent:
+            if self.hasChangePosition() and positionCurrent:
                 stock["quantity"] = str(positionCurrent)
             if self.limitPosition(stock=stock):
                 self.setOrderFast(stock=stock)
@@ -166,7 +207,7 @@ class BrokerRoles(Logger):
 
     def limitPosition(self, stock={}):
         sendQuantity = int(stock.get('quantity'))
-        maxPosition = self.getMaxPosition()
+        maxPosition = int(self.getMaxPosition())
         limit = round(maxPosition / 2)
         if sendQuantity <= limit:
             return True

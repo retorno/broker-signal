@@ -2,13 +2,13 @@
 from flask import Flask, request, session, redirect, url_for, escape, Response
 from flask_restful import reqparse, abort, Api, Resource
 import os, time, json
-from scrapy.scrapy_clear import ScrapyClear
+from scrapy_clear import ScrapyClear
 
 
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-api = Api(app)
+# api = Api(app)
 clear = None
 debug = False
 
@@ -21,7 +21,7 @@ def getLastPrice():
 
 @app.route('/scrapy/set-order', methods=['POST'])
 def setOrder():
-    order = clear.setOrderFast(stock=request.json)
+    order = clear.setOrderFast(stock=request.values)
     return order
 
 
@@ -31,22 +31,34 @@ def getPosition():
     return str(position)
 
 
+@app.route('/scrapy/max-position', methods=['GET'])
+def getMaxPosition():
+    max_position = clear.getMaxPosition()
+    return str(max_position)
+
+
+@app.route('/scrapy/orders-open', methods=['GET'])
+def getOrdersOpen():
+    orders_open = clear.ordersOpen()
+    return str(orders_open)
+
+
 @app.route('/scrapy/set-stop', methods=['POST'])
 def setStop():
-    order = clear.setStop(stock=request.json)
+    order = clear.setStop(stock=request.values)
     return order
 
 
 @app.route('/scrapy/cancel-order', methods=['GET'])
 def cancelOrder():
     order = clear.cancelOrders()
-    return order
+    return str(order)
 
 
 @app.route('/scrapy/zerar-all', methods=['GET'])
 def zeraAll():
     zerar = clear.zeraAll()
-    return zerar
+    return str(zerar)
 
 
 @app.route('/scrapy/recipe', methods=['GET'])
@@ -58,14 +70,13 @@ def getRecipe():
 def connectBroker():
     global clear
     clear = ScrapyClear()
-    clear.openBroker()
-    clear.setLogin()
-    clear.closeModal()
+    clear.login()
+    # clear.closeModal()
     clear.openPanelOrderFast()
     return clear
 
 
 if __name__ == '__main__':
-    connectBroker()
+    clear = connectBroker()
     # sudo lsof -t -i tcp:5010 | xargs kill
-    app.run(debug=debug, host='0.0.0.0', port=5010)
+    app.run(debug=False, host='0.0.0.0', port=5011)

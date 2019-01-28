@@ -51,12 +51,13 @@ def js_href(el):
 
 class WebDriver(webdriver.Chrome):
     env = None
+    driver = None
 
-    def __init__(self, config={}):
-        if config.get("RUN_DOCKER"):
+    def __init__(self, *abs):
+        if self.env.get("RUN_CONTEINER"):
             time.sleep(2)
-            print("###### => " + str(config))
-            docker_host= config.get("SELENIUM_HUB")
+            print("###### => " + str(self.env))
+            docker_host= self.env.get("SELENIUM_HUB")
             self.driver = webdriver.Remote(command_executor=docker_host, desired_capabilities=DesiredCapabilities.CHROME)
             self.wait = WebDriverWait(self.driver, 1)
             self.driver.set_page_load_timeout(9999)
@@ -70,7 +71,8 @@ class WebDriver(webdriver.Chrome):
             preferences = {"download.default_directory": download_dir}
             options.add_experimental_option("prefs", preferences)
             self.driver = super().__init__(executable_path= chromium_path, chrome_options=options)
-            self.wait = WebDriverWait(self.driver, 1)
+            # self.wait = WebDriverWait(self.driver, 1)
+            self.wait = WebDriverWait(self, 1)
         
     def wait_until(self, method, timeout=20, interval=1):
         return WebDriverWait(self, timeout, interval).until(method)

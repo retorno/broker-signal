@@ -21,14 +21,14 @@ class Logger(Config):
     def __init__(self):
         if not self.conf:
             Config.__init__(self)
-        if self.script:
-            logging.Logger(basename(self.script), logging.INFO)
-        if "log" in self.conf and "format" in self.conf["log"]:
-            self._format = self.conf["log"]["format"]
-        else:
-            self._format = "%(asctime)-15s %(name) %(levelname)s %(message)s"
+        # if self.script:
+        #     logging.Logger(basename(self.script), logging.INFO)
+        # if "log" in self.conf and "format" in self.conf["log"]:
+        #     self._format = self.conf["log"]["format"]
+        # else:
+        #     self._format = "%(asctime)-15s %(name) %(levelname)s %(message)s"
 
-        here_logs = "/logs"
+        here_logs = "./logs"
         # filename = re.sub(r"py$", "log", basename(self.script), 1)
         self._file = here_logs + "/broker-signal.log"
         self._bad_file = here_logs + "/broker-signal.err"

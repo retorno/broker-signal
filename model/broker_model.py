@@ -14,3 +14,10 @@ class TypeOrderEnum(Enum):
     AGRESSION = 'Aggression'
     CANCELAR = 'Cancelar'
     ZERAR = 'Zerar'
+
+
+class TypeMethod(Enum):
+    GET = "get"
+    POST = "post"
+    PUT = "put"
+    DELETE = "delete"

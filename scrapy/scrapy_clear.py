@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literalsm
+from __future__ import unicode_literals
+import os, sys
+here = os.environ.get("PROJECT_BROKER")
+sys.path.append(here)
 from utils.WebDriver import *
 from utils.WebDriver import WebDriver
 from model.broker_model import OperationEnum, TypeOrderEnum
+from utils import Config, Logger
 import os, time, re
 
 
-class ScrapyClear(WebDriver):
+class ScrapyClear(WebDriver, Logger):
+    env = None
 
     def __init__(self):
-        config_chrome = self.conf.get("enviroment")
-        super().__init__(config= config_chrome)
+        Config.__init__(self)
+        Logger.__init__(self)
+        self.env = self.conf.get("enviroment")
+        if self.env.get("RUN_CONTEINER"):
+            super().__init__(self)
+        else:
+            WebDriver.__init__(self)
 
-    def openBroker(self):
-        self.driver.get(os.environ.get('URL_BROKER'))
-
-    def setLogin(self, username=None):
+    def login(self, username=None):
+        self.get(os.environ.get('URL_BROKER'))
         broker_cpf_cnpj = os.environ.get('BROKER_CPF_CNPJ')
         broker_password = os.environ.get('BROKER_PASSWORD')
         broker_dt_nasc = os.environ.get('BROKER_DT_NASC')
@@ -25,12 +33,12 @@ class ScrapyClear(WebDriver):
         password = self.element(ID('password'))
         password.clear()
         password.send_keys(broker_password)
-        dt_nasc = self.element(CLASS('input_date'))
+        dt_nasc = self.wait_until(present(CLASS('input_date')))
         dt_nasc.clear()
         dt_nasc.send_keys(broker_dt_nasc)
         self.element(CLASS('bt_signin')).click()
         self.element(CLASS('right')).click()
-        self.openBroker()
+        self.get(os.environ.get('URL_BROKER'))
 
     def getMaxPosition(self):
         maxPosition = self.execute_script('return document.getElementsByClassName("container_garantia_exposicao")[0].lastElementChild.value')
@@ -47,8 +55,12 @@ class ScrapyClear(WebDriver):
             return '0'
 
     def getRecipe(self, stock={}):
-        recipe = self.element(CLASS('ng-binding')).text[3:]
-        return recipe
+        recipe = self.element(CLASS('ng-binding'))
+        if recipe:
+            recipe = recipe.text[3:].replace(',','.')
+            return recipe
+        else:
+            return '0'
 
     def setOrderFast(self, stock={}):
         tab_orders_fast = self.element(CLASS('bt_fast_boleta'))
@@ -80,12 +92,14 @@ class ScrapyClear(WebDriver):
         self.exeCancelOrder()
         self.priceLastOrder = 0
         self.priceLastStop = 0
+        return {}
 
     def cancelOrders(self):
         btn_order = self.element(CLASS('bt_action'))
         btn_order.click()
         self.assignOperation( type_order= TypeOrderEnum.CANCELAR.value )
         self.exeCancelOrder()
+        return {}
 
     def exeCancelOrder(self):
         btn_execute = 'bt_comprar'
@@ -125,8 +139,6 @@ class ScrapyClear(WebDriver):
         return {"qtd_open": qtd_open, "qtd_buy": qtd_buy, "qtd_sell": qtd_sell}
 
     def setStop(self, stock= {}):
-        price_stop = self.getPriceStop(stock= stock)
-        stock['price_stop'] = price_stop
         stock['type_operation'] = TypeOrderEnum.STOP.value
         self.cancelOrders()
         self.setOrder(stock= stock)
@@ -148,7 +160,6 @@ class ScrapyClear(WebDriver):
         self.assignOperation( type_order= TypeOrderEnum.LIMITED.value )
         if int(stock.get('production')):
             self.element(CLASS('bt_comprar')).click()
-        self.sayExecute(stock= stock)
 
     def setFormOrder(self, stock={}):
         edtQuantity = self.element(ID('msg_quantity'))
@@ -168,7 +179,7 @@ class ScrapyClear(WebDriver):
         self.execute_script('document.getElementsByClassName("input_key")[%s].value = "%s"' %(keyOper, sign))
 
     def openPanelOrderFast(self):
-        tab_ordens = self.find_element_by_class_name("bt_orders_boleta")
+        tab_ordens = self.element(CLASS("bt_orders_boleta"))
         tab_ordens.click()
         btn_orders_fast = self.element(CLASS('bt_open_orders_f'))
         btn_orders_fast.click()
